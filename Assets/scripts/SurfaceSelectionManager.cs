@@ -8,6 +8,7 @@ public class SurfaceSelectionManager : MonoBehaviour
   [SerializeField] private ARRaycastManager raycastManager;
   [SerializeField] private ARPlaneManager planeManager;
   [SerializeField] private Material selectedPlaneMaterial;
+  [SerializeField] private GameObject boardPrefab;
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
@@ -50,7 +51,6 @@ public class SurfaceSelectionManager : MonoBehaviour
       }
     }
   }
-
   private void SelectSurface(ARPlane selectedPlane)
   {
     surfaceSelected = true;
@@ -64,7 +64,20 @@ public class SurfaceSelectionManager : MonoBehaviour
       renderer.material = selectedPlaneMaterial;
     }
 
-    // comment this to stop detection on click 
+    // Spawn the board on the selected plane
+    GameObject board = Instantiate(
+      boardPrefab,
+      hits[0].pose.position,
+     hits[0].pose.rotation 
+  );
+
+    GridManager grid = board.GetComponentInChildren<GridManager>();
+
+    if (grid != null)
+    {
+      grid.GenerateGrid();
+    }
+
     planeManager.enabled = false;
 
     foreach (var plane in planeManager.trackables)

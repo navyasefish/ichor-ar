@@ -6241,6 +6241,7 @@ MonoBehaviour:
   raycastManager: {fileID: 331264287}
   planeManager: {fileID: 151853166}
   selectedPlaneMaterial: {fileID: 2100000, guid: e9019b1177f88424289610efa0ed9efb, type: 2}
+  boardPrefab: {fileID: 7689550239352795019, guid: a288018370a9da84989e39407c84b8f7, type: 3}
 --- !u!1 &1756045394
 GameObject:
   m_ObjectHideFlags: 0
