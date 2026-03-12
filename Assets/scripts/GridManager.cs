@@ -22,7 +22,7 @@ public class GridManager : MonoBehaviour
             z * tileSize - gridOffsetZ
         );
 
-        Instantiate(tilePrefab, position, Quaternion.identity, transform);
+        Instantiate(tilePrefab, position, Quaternion.Euler(90f, 0f, 0f), transform);
       }
     }
   }
