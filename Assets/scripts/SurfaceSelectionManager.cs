@@ -11,7 +11,6 @@ public class SurfaceSelectionManager : MonoBehaviour
   [SerializeField] private GameObject boardPrefab;
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
-
   private bool surfaceSelected = false;
 
   private void Update()
@@ -21,17 +20,13 @@ public class SurfaceSelectionManager : MonoBehaviour
 
     Vector2 inputPosition;
 
-    // Touch input
     if (Input.touchCount > 0)
     {
       Touch touch = Input.GetTouch(0);
-
       if (touch.phase != TouchPhase.Began)
         return;
-
       inputPosition = touch.position;
     }
-    // Mouse click (editor)
     else if (Input.GetMouseButtonDown(0))
     {
       inputPosition = Input.mousePosition;
@@ -51,31 +46,41 @@ public class SurfaceSelectionManager : MonoBehaviour
       }
     }
   }
+
   private void SelectSurface(ARPlane selectedPlane)
   {
     surfaceSelected = true;
 
-    Debug.Log("Plane Selected");
+    Debug.Log("[SurfaceSelectionManager] Plane selected.");
+    Debug.Log($"[SurfaceSelectionManager] Plane center: {selectedPlane.transform.position}");
+    Debug.Log($"[SurfaceSelectionManager] Hit pose position: {hits[0].pose.position}");
 
     MeshRenderer renderer = selectedPlane.GetComponent<MeshRenderer>();
-
     if (renderer != null)
-    {
       renderer.material = selectedPlaneMaterial;
-    }
 
-    // Spawn the board on the selected plane
-    GameObject board = Instantiate(
-      boardPrefab,
-      hits[0].pose.position,
-     hits[0].pose.rotation 
-  );
+    // Spawn board snapped to plane center, not just hit point
+    // This ensures grid tiles align with the plane's coordinate space
+    Vector3 spawnPos = new Vector3(
+        selectedPlane.transform.position.x,
+        selectedPlane.transform.position.y,
+        selectedPlane.transform.position.z
+    );
+
+    GameObject board = Instantiate(boardPrefab, spawnPos, hits[0].pose.rotation);
+
+    Debug.Log($"[SurfaceSelectionManager] Board spawned at: {board.transform.position}");
 
     GridManager grid = board.GetComponentInChildren<GridManager>();
 
     if (grid != null)
     {
       grid.GenerateGrid();
+      grid.CullTilesOutsidePlane(selectedPlane);
+    }
+    else
+    {
+      Debug.LogError("[SurfaceSelectionManager] GridManager not found on board!");
     }
 
     planeManager.enabled = false;
