@@ -150,4 +150,11 @@ public class GridManager : MonoBehaviour
 
     return inside;
   }
+  public GridTile GetTile(Vector2Int coordinate)
+  {
+    if (gridTiles.TryGetValue(coordinate, out GridTile tile))
+      return tile;
+
+    return null;
+  }
 }

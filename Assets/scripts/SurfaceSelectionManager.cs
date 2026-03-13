@@ -52,15 +52,11 @@ public class SurfaceSelectionManager : MonoBehaviour
     surfaceSelected = true;
 
     Debug.Log("[SurfaceSelectionManager] Plane selected.");
-    Debug.Log($"[SurfaceSelectionManager] Plane center: {selectedPlane.transform.position}");
-    Debug.Log($"[SurfaceSelectionManager] Hit pose position: {hits[0].pose.position}");
 
     MeshRenderer renderer = selectedPlane.GetComponent<MeshRenderer>();
     if (renderer != null)
       renderer.material = selectedPlaneMaterial;
 
-    // Spawn board snapped to plane center, not just hit point
-    // This ensures grid tiles align with the plane's coordinate space
     Vector3 spawnPos = new Vector3(
         selectedPlane.transform.position.x,
         selectedPlane.transform.position.y,
@@ -77,6 +73,13 @@ public class SurfaceSelectionManager : MonoBehaviour
     {
       grid.GenerateGrid();
       grid.CullTilesOutsidePlane(selectedPlane);
+
+      BuildingPlacementManager placementManager = FindObjectOfType<BuildingPlacementManager>();
+
+      if (placementManager != null)
+      {
+        placementManager.SetGridManager(grid);
+      }
     }
     else
     {
@@ -84,6 +87,7 @@ public class SurfaceSelectionManager : MonoBehaviour
     }
 
     planeManager.enabled = false;
+    raycastManager.enabled = false;
 
     foreach (var plane in planeManager.trackables)
     {
