@@ -15,6 +15,7 @@ public class BuildingPlacementManager : MonoBehaviour
   private GameObject previewBuilding;
   private GridManager gridManager;
   private BuildingDefinition currentBuilding;
+  private int currentRotation = 0;
 
   private bool placementMode = false;
   private List<GridTile> highlightedTiles = new List<GridTile>();
@@ -40,7 +41,7 @@ public class BuildingPlacementManager : MonoBehaviour
     currentBuilding = previewBuilding.GetComponent<BuildingDefinition>();
 
     previewBuilding.name = "PreviewBuilding";
-
+    currentRotation = 0;
     placementMode = true;
   }
 
@@ -194,5 +195,17 @@ public class BuildingPlacementManager : MonoBehaviour
   public void SetGridManager(GridManager grid)
   {
     gridManager = grid;
+  }
+  public void RotateBuilding()
+  {
+    if (previewBuilding == null)
+      return;
+
+    currentRotation += 90;
+
+    if (currentRotation >= 360)
+      currentRotation = 0;
+
+    previewBuilding.transform.rotation = Quaternion.Euler(0, currentRotation, 0);
   }
 }
