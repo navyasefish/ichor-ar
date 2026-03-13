@@ -7,16 +7,27 @@ public class BuildingPlacementManager : MonoBehaviour
 {
   [SerializeField] private ARRaycastManager raycastManager;
   [SerializeField] private Camera arCamera;
-  private BuildingDefinition currentBuilding;
+  [SerializeField] private GameObject testBuildingPrefab;
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
   private GameObject previewBuilding;
   private GridManager gridManager;
+  private BuildingDefinition currentBuilding;
 
   private bool placementMode = false;
 
   
+  public void StartTestPlacement()
+  {
+    if (testBuildingPrefab == null)
+    {
+      Debug.LogError("Test building prefab not assigned!");
+      return;
+    }
+
+    StartPlacement(testBuildingPrefab);
+  }
   public void StartPlacement(GameObject buildingPrefab)
   {
     if (previewBuilding != null)
@@ -56,6 +67,8 @@ public class BuildingPlacementManager : MonoBehaviour
 
   void MovePreview(Vector3 worldPos)
   {
+    if (gridManager == null)
+      return;
     GridTile nearestTile = FindNearestTile(worldPos);
 
     if (nearestTile == null)
