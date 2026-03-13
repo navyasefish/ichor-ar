@@ -9,6 +9,7 @@ public class BuildingPlacementManager : MonoBehaviour
   [SerializeField] private ARRaycastManager raycastManager;
   [SerializeField] private Camera arCamera;
   [SerializeField] private GameObject testBuildingPrefab;
+  [SerializeField] private GameObject currentPlaceablePrefab;
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
@@ -21,7 +22,15 @@ public class BuildingPlacementManager : MonoBehaviour
   private List<GridTile> highlightedTiles = new List<GridTile>();
   private bool currentPlacementValid = false;
 
+  public void StartTerrainPlacement(GameObject terrainPrefab)
+  {
+    StartPlacement(terrainPrefab);
+  }
 
+  public void StartBuildingPlacement(GameObject buildingPrefab)
+  {
+    StartPlacement(buildingPrefab);
+  }
   public void StartTestPlacement()
   {
     if (testBuildingPrefab == null)
@@ -32,22 +41,30 @@ public class BuildingPlacementManager : MonoBehaviour
 
     StartPlacement(testBuildingPrefab);
   }
-  public void StartPlacement(GameObject buildingPrefab)
+  public void StartPlacement(GameObject prefab)
   {
     if (previewBuilding != null)
       Destroy(previewBuilding);
 
-    previewBuilding = Instantiate(buildingPrefab);
-    currentBuilding = previewBuilding.GetComponent<BuildingDefinition>();
+    currentPlaceablePrefab = prefab;
 
-    previewBuilding.name = "PreviewBuilding";
+    BuildingDefinition def = prefab.GetComponent<BuildingDefinition>();
+    currentBuilding = def;
+
     currentRotation = 0;
     placementMode = true;
+
+    // Only spawn preview for buildings
+    if (def.placeableType == PlaceableType.Building)
+    {
+      previewBuilding = Instantiate(prefab);
+      previewBuilding.name = "PreviewBuilding";
+    }
   }
 
   void Update()
   {
-    if (!placementMode || previewBuilding == null)
+    if (!placementMode || currentBuilding == null)
       return;
 
     // Ignore touches on UI
@@ -76,10 +93,52 @@ public class BuildingPlacementManager : MonoBehaviour
     {
       Pose hitPose = hits[0].pose;
 
-      MovePreview(hitPose.position);
+      if (currentBuilding.placeableType == PlaceableType.Terrain)
+      {
+        HandleTerrainPlacement(hitPose.position);
+      }
+      else
+      {
+        MovePreview(hitPose.position);
+      }
     }
   }
+  void HandleTerrainPlacement(Vector3 worldPos)
+  {
+    bool tapDetected = false;
 
+    // Mobile touch
+    if (Input.touchCount > 0)
+    {
+      if (Input.GetTouch(0).phase == TouchPhase.Began)
+        tapDetected = true;
+    }
+
+    // Editor / Simulator mouse click
+    if (Input.GetMouseButtonDown(0))
+    {
+      tapDetected = true;
+    }
+
+    if (!tapDetected)
+      return;
+
+    GridTile tile = FindNearestTile(worldPos);
+
+    if (tile == null)
+      return;
+
+    if (tile.terrainObject != null)
+      Destroy(tile.terrainObject);
+
+    GameObject terrain = Instantiate(
+        currentPlaceablePrefab,
+        tile.transform.position + new Vector3(0, 0.01f, 0),
+        Quaternion.identity
+    );
+
+    tile.terrainObject = terrain;
+  }
   void MovePreview(Vector3 worldPos)
   {
     if (gridManager == null || currentBuilding == null)
@@ -165,11 +224,18 @@ public class BuildingPlacementManager : MonoBehaviour
     return closestTile;
   }
   public void ConfirmPlacement()
-{
+  {
+    // Terrain confirm just exits mode
+    if (currentBuilding.placeableType == PlaceableType.Terrain)
+    {
+      placementMode = false;
+      return;
+    }
+
     if (!currentPlacementValid)
     {
-        Debug.Log("Invalid placement!");
-        return;
+      Debug.Log("Invalid placement!");
+      return;
     }
 
     foreach (GridTile tile in highlightedTiles)

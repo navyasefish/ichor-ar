@@ -1,9 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum PlaceableType
+{
+  Terrain,
+  Building
+}
+
+
 public class BuildingDefinition : MonoBehaviour
 {
-    public enum BuildingShape
+  public PlaceableType placeableType = PlaceableType.Building;
+
+  public enum BuildingShape
     {
         OneByOne,
         TwoByTwo,
@@ -18,7 +27,7 @@ public class BuildingDefinition : MonoBehaviour
     [Tooltip("Size of one grid tile")]
     public float tileSize = 0.2f;
 
-    public List<Vector2Int> GetFootprint()
+  public List<Vector2Int> GetFootprint()
     {
         List<Vector2Int> tiles = new List<Vector2Int>();
 
