@@ -17,6 +17,7 @@ public class BuildingPlacementManager : MonoBehaviour
 
   private bool placementMode = false;
   private List<GridTile> highlightedTiles = new List<GridTile>();
+  private bool currentPlacementValid = false;
 
 
   public void StartTestPlacement()
@@ -76,7 +77,18 @@ public class BuildingPlacementManager : MonoBehaviour
     if (anchorTile == null)
       return;
 
-    previewBuilding.transform.position = anchorTile.transform.position;
+    float tileSize = gridManager.TileSize;
+
+    int width = currentBuilding.GetWidth();
+    int height = currentBuilding.GetHeight();
+
+    Vector3 offset = new Vector3(
+        (width - 1) * tileSize * 0.5f,
+        0,
+        (height - 1) * tileSize * 0.5f
+    );
+
+    previewBuilding.transform.position = anchorTile.transform.position + offset;
 
     UpdateTileHighlights(anchorTile);
   }
@@ -86,17 +98,17 @@ public class BuildingPlacementManager : MonoBehaviour
 
     List<Vector2Int> footprint = currentBuilding.GetFootprint();
 
-    bool validPlacement = true;
+    currentPlacementValid = true;
 
     foreach (Vector2Int offset in footprint)
     {
-      Vector2Int targetCoord = anchorTile.coordinate + offset;
+      Vector2Int coord = anchorTile.coordinate + offset;
 
-      GridTile tile = gridManager.GetTile(targetCoord);
+      GridTile tile = gridManager.GetTile(coord);
 
-      if (tile == null || tile.isOccupied)
+      if (tile == null || !tile.gameObject.activeInHierarchy || tile.isOccupied)
       {
-        validPlacement = false;
+        currentPlacementValid = false;
         continue;
       }
 
@@ -105,7 +117,7 @@ public class BuildingPlacementManager : MonoBehaviour
 
     foreach (GridTile tile in highlightedTiles)
     {
-      if (validPlacement)
+      if (currentPlacementValid)
         tile.SetValid();
       else
         tile.SetInvalid();
@@ -140,14 +152,17 @@ public class BuildingPlacementManager : MonoBehaviour
     return closestTile;
   }
   public void ConfirmPlacement()
-  {
-    if (previewBuilding == null)
-      return;
+{
+    if (!currentPlacementValid)
+    {
+        Debug.Log("Invalid placement!");
+        return;
+    }
 
     foreach (GridTile tile in highlightedTiles)
     {
-      tile.isOccupied = true;
-      tile.SetDefault();
+        tile.isOccupied = true;
+        tile.SetDefault();
     }
 
     previewBuilding.name = "Placed Building";
@@ -155,7 +170,7 @@ public class BuildingPlacementManager : MonoBehaviour
     highlightedTiles.Clear();
     previewBuilding = null;
     placementMode = false;
-  }
+}
 
   public void CancelPlacement()
   {

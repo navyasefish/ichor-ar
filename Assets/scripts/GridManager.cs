@@ -7,8 +7,9 @@ public class GridManager : MonoBehaviour
   [SerializeField] private GameObject tilePrefab;
   [SerializeField] private int gridWidth = 12;
   [SerializeField] private int gridHeight = 12;
-  [SerializeField] private float tileSize = 0.25f;
+  [SerializeField] private float tileSize = 0.2f;
 
+  public float TileSize => tileSize;
   private List<GameObject> spawnedTiles = new List<GameObject>();
   private Dictionary<Vector2Int, GridTile> gridTiles = new Dictionary<Vector2Int, GridTile>();
 
