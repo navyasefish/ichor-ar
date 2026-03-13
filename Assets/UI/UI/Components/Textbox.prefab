@@ -224,7 +224,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -20.883446, y: -6.5307827, z: -83.53402, w: -8.033222}
+  m_margin: {x: -8.936035, y: -6.5307827, z: -83.53402, w: -8.033222}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -352,8 +352,8 @@ RectTransform:
   m_GameObject: {fileID: 6327873405320508516}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3.52, y: 3.498818, z: 2.5171351}
-  m_ConstrainProportionsScale: 1
+  m_LocalScale: {x: 4.25, y: 4.552439, z: 3.275136}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8433076756411935721}
   - {fileID: 8176487011437844250}
@@ -428,7 +428,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250.37029, y: -104.5889}
+  m_AnchoredPosition: {x: 250.37029, y: -96}
   m_SizeDelta: {x: 414.9416, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3719976520904351511
@@ -772,7 +772,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8651213571587169845, guid: f586465d676061048a59d4905c2f09e0, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: NextDialogue
+      value: SkipDialogue
       objectReference: {fileID: 0}
     - target: {fileID: 8651213571587169845, guid: f586465d676061048a59d4905c2f09e0, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName

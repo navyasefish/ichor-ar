@@ -274,8 +274,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -695.53, y: -107.9}
-  m_SizeDelta: {x: 806.5501, y: 759.0912}
+  m_AnchoredPosition: {x: -777, y: -230}
+  m_SizeDelta: {x: 1131.9866, y: 993.9636}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &327235813
 MonoBehaviour:
@@ -538,10 +538,6 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1593137098}
-    - target: {fileID: 390818439531707801, guid: b121aa94d67ee3141b535171b9b20bc9, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SkipDialogue
-      objectReference: {fileID: 0}
     - target: {fileID: 4957168192886267767, guid: b121aa94d67ee3141b535171b9b20bc9, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -604,11 +600,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4957168192886267767, guid: b121aa94d67ee3141b535171b9b20bc9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -58
+      value: -8
       objectReference: {fileID: 0}
     - target: {fileID: 4957168192886267767, guid: b121aa94d67ee3141b535171b9b20bc9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 8.090027
+      value: -263
       objectReference: {fileID: 0}
     - target: {fileID: 4957168192886267767, guid: b121aa94d67ee3141b535171b9b20bc9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -629,10 +625,6 @@ PrefabInstance:
     - target: {fileID: 6327873405320508516, guid: b121aa94d67ee3141b535171b9b20bc9, type: 3}
       propertyPath: m_Name
       value: Textbox
-      objectReference: {fileID: 0}
-    - target: {fileID: 6327873405320508516, guid: b121aa94d67ee3141b535171b9b20bc9, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
