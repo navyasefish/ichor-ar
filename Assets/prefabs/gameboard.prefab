@@ -45,9 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilePrefab: {fileID: 6869653909995296460, guid: 53be55bff610cac44ba08ceeaf944913, type: 3}
-  gridWidth: 10
-  gridHeight: 10
-  tileSize: 0.31
+  gridWidth: 20
+  gridHeight: 20
+  tileSize: 0.16
 --- !u!1 &7689550239352795019
 GameObject:
   m_ObjectHideFlags: 0
