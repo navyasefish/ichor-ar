@@ -7,7 +7,7 @@ public class BuildingPlacementManager : MonoBehaviour
 {
   [SerializeField] private ARRaycastManager raycastManager;
   [SerializeField] private Camera arCamera;
-  [SerializeField] private GameObject testBuildingPrefab;
+  private BuildingDefinition currentBuilding;
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
@@ -16,16 +16,16 @@ public class BuildingPlacementManager : MonoBehaviour
 
   private bool placementMode = false;
 
-  public void StartTestPlacement()
+  
+  public void StartPlacement(GameObject buildingPrefab)
   {
-    StartPlacement(testBuildingPrefab, gridManager);
-  }
-  public void StartPlacement(GameObject buildingPrefab, GridManager grid)
-  {
-    gridManager = grid;
+    if (previewBuilding != null)
+      Destroy(previewBuilding);
 
     previewBuilding = Instantiate(buildingPrefab);
-    previewBuilding.name = "Preview Building";
+    currentBuilding = previewBuilding.GetComponent<BuildingDefinition>();
+
+    previewBuilding.name = "PreviewBuilding";
 
     placementMode = true;
   }
