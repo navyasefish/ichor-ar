@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class BuildingPlacementManager : MonoBehaviour
 {
@@ -48,6 +49,17 @@ public class BuildingPlacementManager : MonoBehaviour
     if (!placementMode || previewBuilding == null)
       return;
 
+    // Ignore touches on UI
+    if (Input.touchCount > 0)
+    {
+      if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+        return;
+    }
+    else
+    {
+      if (EventSystem.current.IsPointerOverGameObject())
+        return;
+    }
     Vector2 screenPos;
 
     if (Input.touchCount > 0)
