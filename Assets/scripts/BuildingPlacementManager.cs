@@ -16,8 +16,9 @@ public class BuildingPlacementManager : MonoBehaviour
   private BuildingDefinition currentBuilding;
 
   private bool placementMode = false;
+  private List<GridTile> highlightedTiles = new List<GridTile>();
 
-  
+
   public void StartTestPlacement()
   {
     if (testBuildingPrefab == null)
@@ -67,14 +68,57 @@ public class BuildingPlacementManager : MonoBehaviour
 
   void MovePreview(Vector3 worldPos)
   {
-    if (gridManager == null)
-      return;
-    GridTile nearestTile = FindNearestTile(worldPos);
-
-    if (nearestTile == null)
+    if (gridManager == null || currentBuilding == null)
       return;
 
-    previewBuilding.transform.position = nearestTile.transform.position;
+    GridTile anchorTile = FindNearestTile(worldPos);
+
+    if (anchorTile == null)
+      return;
+
+    previewBuilding.transform.position = anchorTile.transform.position;
+
+    UpdateTileHighlights(anchorTile);
+  }
+  void UpdateTileHighlights(GridTile anchorTile)
+  {
+    ResetHighlightedTiles();
+
+    List<Vector2Int> footprint = currentBuilding.GetFootprint();
+
+    bool validPlacement = true;
+
+    foreach (Vector2Int offset in footprint)
+    {
+      Vector2Int targetCoord = anchorTile.coordinate + offset;
+
+      GridTile tile = gridManager.GetTile(targetCoord);
+
+      if (tile == null || tile.isOccupied)
+      {
+        validPlacement = false;
+        continue;
+      }
+
+      highlightedTiles.Add(tile);
+    }
+
+    foreach (GridTile tile in highlightedTiles)
+    {
+      if (validPlacement)
+        tile.SetValid();
+      else
+        tile.SetInvalid();
+    }
+  }
+  void ResetHighlightedTiles()
+  {
+    foreach (GridTile tile in highlightedTiles)
+    {
+      tile.SetDefault();
+    }
+
+    highlightedTiles.Clear();
   }
 
   GridTile FindNearestTile(Vector3 position)
@@ -95,16 +139,22 @@ public class BuildingPlacementManager : MonoBehaviour
 
     return closestTile;
   }
-
   public void ConfirmPlacement()
   {
     if (previewBuilding == null)
       return;
 
+    foreach (GridTile tile in highlightedTiles)
+    {
+      tile.isOccupied = true;
+      tile.SetDefault();
+    }
+
     previewBuilding.name = "Placed Building";
 
-    placementMode = false;
+    highlightedTiles.Clear();
     previewBuilding = null;
+    placementMode = false;
   }
 
   public void CancelPlacement()

@@ -2,12 +2,28 @@ using UnityEngine;
 
 public class GridTile : MonoBehaviour
 {
-  // Coordinate of this tile inside the grid
+  [SerializeField] private Renderer tileRenderer;
+
+  [SerializeField] private Material defaultMaterial;
+  [SerializeField] private Material validMaterial;
+  [SerializeField] private Material invalidMaterial;
+
   public Vector2Int coordinate;
 
-  // Whether a building is occupying this tile
   public bool isOccupied = false;
 
-  // Optional reference to the building occupying it (useful later)
-  public GameObject occupyingBuilding;
+  public void SetDefault()
+  {
+    tileRenderer.material = defaultMaterial;
+  }
+
+  public void SetValid()
+  {
+    tileRenderer.material = validMaterial;
+  }
+
+  public void SetInvalid()
+  {
+    tileRenderer.material = invalidMaterial;
+  }
 }
