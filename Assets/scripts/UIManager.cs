@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
@@ -8,35 +9,37 @@ public class UIManager : MonoBehaviour
   public GameObject placementPanel;
   public GameObject scanPanel;
 
+  private GameObject currentPanel;
+  private Stack<GameObject> panelHistory = new Stack<GameObject>();
+
   void Start()
   {
-    ShowHome();
+    ShowPanel(homePanel);
   }
 
-  public void ShowHome()
+  public void ShowPanel(GameObject panel)
   {
-    homePanel.SetActive(true);
-    categoryPanel.SetActive(false);
-    itemPanel.SetActive(false);
-    placementPanel.SetActive(false);
-    scanPanel.SetActive(false);
-  }
+    Debug.Log("Opening panel: " + panel.name);
 
-  public void ShowCategories()
-  {
-    homePanel.SetActive(false);
-    categoryPanel.SetActive(true);
-  }
+    if (currentPanel != null)
+    {
+      panelHistory.Push(currentPanel);
+      currentPanel.SetActive(false);
+    }
 
-  public void ShowPlacement()
-  {
-    categoryPanel.SetActive(false);
-    placementPanel.SetActive(true);
+    panel.SetActive(true);
+    currentPanel = panel;
   }
-
-  public void BackToCategories()
+  public void GoBack()
   {
-    placementPanel.SetActive(false);
-    categoryPanel.SetActive(true);
+    if (panelHistory.Count == 0)
+      return;
+
+    currentPanel.SetActive(false);
+
+    GameObject previous = panelHistory.Pop();
+    previous.SetActive(true);
+
+    currentPanel = previous;
   }
 }
