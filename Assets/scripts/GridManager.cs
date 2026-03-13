@@ -10,6 +10,7 @@ public class GridManager : MonoBehaviour
   [SerializeField] private float tileSize = 0.25f;
 
   private List<GameObject> spawnedTiles = new List<GameObject>();
+  private Dictionary<Vector2Int, GridTile> gridTiles = new Dictionary<Vector2Int, GridTile>();
 
   public void GenerateGrid()
   {
@@ -27,7 +28,14 @@ public class GridManager : MonoBehaviour
         );
 
         GameObject tile = Instantiate(tilePrefab, position, Quaternion.Euler(90f, 0f, 0f), transform);
+        // Get the GridTile component
+        GridTile gridTile = tile.GetComponent<GridTile>();
+
+        // Assign its coordinate
+        gridTile.coordinate = new Vector2Int(x, z);
+
         spawnedTiles.Add(tile);
+        gridTiles.Add(gridTile.coordinate, gridTile);
       }
     }
 
