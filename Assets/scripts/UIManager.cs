@@ -8,6 +8,7 @@ public class UIManager : MonoBehaviour
   public GameObject itemPanel;
   public GameObject placementPanel;
   public GameObject scanPanel;
+  public GameObject housingPanel;
 
   private GameObject currentPanel;
   private Stack<GameObject> panelHistory = new Stack<GameObject>();
@@ -41,5 +42,9 @@ public class UIManager : MonoBehaviour
     previous.SetActive(true);
 
     currentPanel = previous;
+  }
+  public void ShowPlacementPanel()
+  {
+    placementPanel.SetActive(true);
   }
 }

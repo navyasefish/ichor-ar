@@ -12,10 +12,11 @@ public class SurfaceSelectionManager : MonoBehaviour
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
   private bool surfaceSelected = false;
+  private bool scanMode = false;
 
   private void Update()
   {
-    if (surfaceSelected)
+    if (surfaceSelected || !scanMode)
       return;
 
     Vector2 inputPosition;
@@ -74,6 +75,13 @@ public class SurfaceSelectionManager : MonoBehaviour
       grid.GenerateGrid();
       grid.CullTilesOutsidePlane(selectedPlane);
 
+      UIManager ui = FindObjectOfType<UIManager>();
+
+      if (ui != null)
+      {
+        ui.ShowPanel(ui.placementPanel);
+      }
+
       BuildingPlacementManager placementManager = FindObjectOfType<BuildingPlacementManager>();
 
       if (placementManager != null)
@@ -94,5 +102,41 @@ public class SurfaceSelectionManager : MonoBehaviour
       if (plane != selectedPlane)
         plane.gameObject.SetActive(false);
     }
+    scanMode = false;
+  }
+  
+  public void Rescan()
+  {
+    surfaceSelected = false;
+
+    planeManager.enabled = true;
+    raycastManager.enabled = true;
+
+    foreach (var plane in planeManager.trackables)
+    {
+      plane.gameObject.SetActive(true);
+    }
+
+    Debug.Log("Rescanning started.");
+  }
+  public void StartScanning()
+  {
+    scanMode = true;
+    surfaceSelected = false;
+
+    planeManager.enabled = true;
+    raycastManager.enabled = true;
+
+    foreach (var plane in planeManager.trackables)
+    {
+      plane.gameObject.SetActive(true);
+    }
+
+    Debug.Log("Scanning started");
+  }
+
+  public void StopScanning()
+  {
+    scanMode = false;
   }
 }
