@@ -16,11 +16,23 @@ public class SurfaceSelectionManager : MonoBehaviour
   private bool scanMode = false;
   private bool surfaceSelected = false;
 
+  // Kept after first scan so subsequent categories reuse it
+  private GridManager activeGrid = null;
+  public bool IsGridReady => activeGrid != null;
+  public GridManager GetActiveGrid() => activeGrid;
+
   // ---------------------------------------------------------------
-  // Only called from UIManager.OnCategorySelected — never auto-starts
+  // Only called from UIManager.OnCategorySelected — never auto-starts.
+  // If a grid already exists this does nothing (UIManager skips scan).
   // ---------------------------------------------------------------
   public void StartScanning()
   {
+    if (IsGridReady)
+    {
+      Debug.Log("[SurfaceSelectionManager] Grid already exists, skipping scan.");
+      return;
+    }
+
     scanMode = true;
     surfaceSelected = false;
 
@@ -31,6 +43,19 @@ public class SurfaceSelectionManager : MonoBehaviour
       plane.gameObject.SetActive(true);
 
     Debug.Log("[SurfaceSelectionManager] Scanning started.");
+  }
+
+  // ---------------------------------------------------------------
+  // Show / hide all grid tiles — called by the toggle button
+  // ---------------------------------------------------------------
+  public void ToggleGrid()
+  {
+    if (activeGrid == null) return;
+
+    bool currentlyActive = activeGrid.gameObject.activeSelf;
+    activeGrid.gameObject.SetActive(!currentlyActive);
+
+    Debug.Log($"[SurfaceSelectionManager] Grid toggled → {(!currentlyActive ? "visible" : "hidden")}");
   }
 
   public void StopScanning()
@@ -113,6 +138,9 @@ public class SurfaceSelectionManager : MonoBehaviour
     {
       grid.GenerateGrid();
       grid.CullTilesOutsidePlane(selectedPlane);
+
+      // Store for reuse across categories
+      activeGrid = grid;
 
       // Hand grid reference to BuildingPlacementManager
       BuildingPlacementManager bpm = FindObjectOfType<BuildingPlacementManager>();

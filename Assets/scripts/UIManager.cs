@@ -41,16 +41,45 @@ public class UIManager : MonoBehaviour
       return;
     }
 
+    SurfaceSelectionManager ssm = FindObjectOfType<SurfaceSelectionManager>();
+
+    // Grid already exists from a previous category — skip scan entirely
+    if (ssm != null && ssm.IsGridReady)
+    {
+      Debug.Log($"[UIManager] Grid exists, skipping scan → showing: {itemPanel.name}");
+
+      // Make sure BuildingPlacementManager has the grid reference
+      BuildingPlacementManager bpm = FindObjectOfType<BuildingPlacementManager>();
+      if (bpm != null) bpm.SetGridManager(ssm.GetActiveGrid());
+
+      activeItemPanel = itemPanel;
+      pendingItemPanel = null;
+      ShowPanel(itemPanel);
+      return;
+    }
+
+    // First time — go through scan flow
     pendingItemPanel = itemPanel;
     Debug.Log($"[UIManager] Category selected → pending panel: {itemPanel.name}");
 
     ShowPanel(scanPanel);
 
-    SurfaceSelectionManager ssm = FindObjectOfType<SurfaceSelectionManager>();
     if (ssm != null)
       ssm.StartScanning();
     else
       Debug.LogError("[UIManager] SurfaceSelectionManager not found in scene!");
+  }
+
+  // -------------------------------------------------------------------
+  // Toggle grid visibility — wire to a button on the home panel
+  // -------------------------------------------------------------------
+  public void ToggleGrid()
+  {
+    SurfaceSelectionManager ssm = FindObjectOfType<SurfaceSelectionManager>();
+    if (ssm != null)
+      ssm.ToggleGrid();
+    else
+      Debug.LogWarning("[UIManager] ToggleGrid — SurfaceSelectionManager not found.");
   }
 
   // -------------------------------------------------------------------
@@ -104,7 +133,31 @@ public class UIManager : MonoBehaviour
     if (bpm != null) bpm.CancelPlacement();
 
     activeItemPanel = null;
-    ShowPanelDirect(categoryPanel);
+
+    // Close current panel, then walk back through history until we
+    // reach the category panel so GoBack still works from there.
+    if (currentPanel != null)
+      currentPanel.SetActive(false);
+
+    // Rebuild history: discard everything above categoryPanel,
+    // keep whatever was below it (e.g. homePanel).
+    Stack<GameObject> kept = new Stack<GameObject>();
+    while (panelHistory.Count > 0)
+    {
+      GameObject p = panelHistory.Pop();
+      if (p == categoryPanel)
+      {
+        kept.Push(p);
+        break;          // stop — homePanel etc. stay below
+      }
+      // discard scan panel, item panel, etc.
+    }
+    // Re-push what we kept (reverses the mini-stack back to correct order)
+    while (kept.Count > 0)
+      panelHistory.Push(kept.Pop());
+
+    categoryPanel.SetActive(true);
+    currentPanel = categoryPanel;
   }
 
   // -------------------------------------------------------------------
