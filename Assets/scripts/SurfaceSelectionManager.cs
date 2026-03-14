@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -11,12 +11,54 @@ public class SurfaceSelectionManager : MonoBehaviour
   [SerializeField] private GameObject boardPrefab;
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
-  private bool surfaceSelected = false;
-  private bool scanMode = false;
 
+  // Strict guards — nothing happens unless both are true
+  private bool scanMode = false;
+  private bool surfaceSelected = false;
+
+  // ---------------------------------------------------------------
+  // Only called from UIManager.OnCategorySelected — never auto-starts
+  // ---------------------------------------------------------------
+  public void StartScanning()
+  {
+    scanMode = true;
+    surfaceSelected = false;
+
+    planeManager.enabled = true;
+    raycastManager.enabled = true;
+
+    foreach (var plane in planeManager.trackables)
+      plane.gameObject.SetActive(true);
+
+    Debug.Log("[SurfaceSelectionManager] Scanning started.");
+  }
+
+  public void StopScanning()
+  {
+    scanMode = false;
+    Debug.Log("[SurfaceSelectionManager] Scanning stopped.");
+  }
+
+  public void Rescan()
+  {
+    surfaceSelected = false;
+    scanMode = true;
+
+    planeManager.enabled = true;
+    raycastManager.enabled = true;
+
+    foreach (var plane in planeManager.trackables)
+      plane.gameObject.SetActive(true);
+
+    Debug.Log("[SurfaceSelectionManager] Rescanning started.");
+  }
+
+  // ---------------------------------------------------------------
+  // Update — only active when scanMode == true AND no surface yet
+  // ---------------------------------------------------------------
   private void Update()
   {
-    if (surfaceSelected || !scanMode)
+    if (!scanMode || surfaceSelected)
       return;
 
     Vector2 inputPosition;
@@ -40,30 +82,27 @@ public class SurfaceSelectionManager : MonoBehaviour
     if (raycastManager.Raycast(inputPosition, hits, TrackableType.PlaneWithinPolygon))
     {
       ARPlane plane = planeManager.GetPlane(hits[0].trackableId);
-
       if (plane != null)
-      {
         SelectSurface(plane);
-      }
     }
   }
 
+  // ---------------------------------------------------------------
+  // Internal — runs once when the player taps a valid AR plane
+  // ---------------------------------------------------------------
   private void SelectSurface(ARPlane selectedPlane)
   {
     surfaceSelected = true;
+    scanMode = false;
 
     Debug.Log("[SurfaceSelectionManager] Plane selected.");
 
-    MeshRenderer renderer = selectedPlane.GetComponent<MeshRenderer>();
-    if (renderer != null)
-      renderer.material = selectedPlaneMaterial;
+    // Highlight the chosen plane
+    MeshRenderer r = selectedPlane.GetComponent<MeshRenderer>();
+    if (r != null) r.material = selectedPlaneMaterial;
 
-    Vector3 spawnPos = new Vector3(
-        selectedPlane.transform.position.x,
-        selectedPlane.transform.position.y,
-        selectedPlane.transform.position.z
-    );
-
+    // Spawn the board at the plane's position
+    Vector3 spawnPos = selectedPlane.transform.position;
     GameObject board = Instantiate(boardPrefab, spawnPos, hits[0].pose.rotation);
 
     Debug.Log($"[SurfaceSelectionManager] Board spawned at: {board.transform.position}");
@@ -75,25 +114,26 @@ public class SurfaceSelectionManager : MonoBehaviour
       grid.GenerateGrid();
       grid.CullTilesOutsidePlane(selectedPlane);
 
+      // Hand grid reference to BuildingPlacementManager
+      BuildingPlacementManager bpm = FindObjectOfType<BuildingPlacementManager>();
+      if (bpm != null)
+        bpm.SetGridManager(grid);
+      else
+        Debug.LogError("[SurfaceSelectionManager] BuildingPlacementManager not found!");
+
+      // Tell UIManager grid is ready → it will show the correct item panel
       UIManager ui = FindObjectOfType<UIManager>();
-
       if (ui != null)
-      {
-        ui.ShowPanel(ui.placementPanel);
-      }
-
-      BuildingPlacementManager placementManager = FindObjectOfType<BuildingPlacementManager>();
-
-      if (placementManager != null)
-      {
-        placementManager.SetGridManager(grid);
-      }
+        ui.OnScanComplete();
+      else
+        Debug.LogError("[SurfaceSelectionManager] UIManager not found!");
     }
     else
     {
-      Debug.LogError("[SurfaceSelectionManager] GridManager not found on board!");
+      Debug.LogError("[SurfaceSelectionManager] GridManager not found on board prefab!");
     }
 
+    // Disable further plane detection
     planeManager.enabled = false;
     raycastManager.enabled = false;
 
@@ -102,41 +142,5 @@ public class SurfaceSelectionManager : MonoBehaviour
       if (plane != selectedPlane)
         plane.gameObject.SetActive(false);
     }
-    scanMode = false;
-  }
-  
-  public void Rescan()
-  {
-    surfaceSelected = false;
-
-    planeManager.enabled = true;
-    raycastManager.enabled = true;
-
-    foreach (var plane in planeManager.trackables)
-    {
-      plane.gameObject.SetActive(true);
-    }
-
-    Debug.Log("Rescanning started.");
-  }
-  public void StartScanning()
-  {
-    scanMode = true;
-    surfaceSelected = false;
-
-    planeManager.enabled = true;
-    raycastManager.enabled = true;
-
-    foreach (var plane in planeManager.trackables)
-    {
-      plane.gameObject.SetActive(true);
-    }
-
-    Debug.Log("Scanning started");
-  }
-
-  public void StopScanning()
-  {
-    scanMode = false;
   }
 }
