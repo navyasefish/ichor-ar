@@ -4,7 +4,8 @@ using UnityEngine;
 public enum PlaceableType
 {
   Terrain,
-  Building
+  Building,
+  Flag
 }
 
 

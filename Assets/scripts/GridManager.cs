@@ -77,7 +77,7 @@ public class GridManager : MonoBehaviour
         pos.y = plane.transform.position.y + 0.001f;
         tile.transform.position = pos;
 
-        Debug.Log($"[GridManager] Visible tile at: {tile.transform.position}");
+        //Debug.Log($"[GridManager] Visible tile at: {tile.transform.position}");
       }
       else
       {
@@ -95,15 +95,15 @@ public class GridManager : MonoBehaviour
       {
         Vector3 wp = spawnedTiles[0].transform.position;
         Vector3 lp = plane.transform.InverseTransformPoint(wp);
-        Debug.LogWarning($"[GridManager] First tile world pos: {wp}");
+        /*Debug.LogWarning($"[GridManager] First tile world pos: {wp}");
         Debug.LogWarning($"[GridManager] First tile in plane local space: {lp}");
         Debug.LogWarning($"[GridManager] 2D point tested: ({lp.x:F3}, {lp.z:F3})");
         Debug.LogWarning($"[GridManager] Plane center: {plane.transform.position}");
-        Debug.LogWarning($"[GridManager] Board center: {transform.position}");
+        Debug.LogWarning($"[GridManager] Board center: {transform.position}");*/
 
         float offsetX = Mathf.Abs(transform.position.x - plane.transform.position.x);
         float offsetZ = Mathf.Abs(transform.position.z - plane.transform.position.z);
-        Debug.LogWarning($"[GridManager] Board-to-plane offset: X={offsetX:F3} Z={offsetZ:F3}");
+        //Debug.LogWarning($"[GridManager] Board-to-plane offset: X={offsetX:F3} Z={offsetZ:F3}");
       }
     }
   }

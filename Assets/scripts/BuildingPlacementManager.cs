@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using System.Collections.Generic;
@@ -24,13 +24,13 @@ public class BuildingPlacementManager : MonoBehaviour
   private bool currentPlacementValid = false;
 
   // ---------------------------------------------------------------
-  // Entry points — called by item buttons in the item panels.
+  // Entry points â€” called by item buttons in the item panels.
   // After calling one of these, UIManager.OnItemSelected() should
   // also be called from the same button to switch to the
   // Confirm / Cancel / Rotate panel.
   // ---------------------------------------------------------------
   // ---------------------------------------------------------------
-  // USE THESE on item buttons — single OnClick, no ordering issues.
+  // USE THESE on item buttons â€” single OnClick, no ordering issues.
   // Starts placement AND tells UIManager to show the placement panel,
   // in guaranteed order.
   // ---------------------------------------------------------------
@@ -82,7 +82,7 @@ public class BuildingPlacementManager : MonoBehaviour
     placementMode = true;
     placementUIShown = false;
 
-    if (def.placeableType == PlaceableType.Building)
+    if (def.placeableType == PlaceableType.Building || def.placeableType == PlaceableType.Flag)
     {
       previewBuilding = Instantiate(prefab);
       previewBuilding.name = "PreviewBuilding";
@@ -90,7 +90,7 @@ public class BuildingPlacementManager : MonoBehaviour
   }
 
   // ---------------------------------------------------------------
-  // Update — preview follows finger/mouse while in placement mode
+  // Update â€” preview follows finger/mouse while in placement mode
   // ---------------------------------------------------------------
   void Update()
   {
@@ -105,7 +105,7 @@ public class BuildingPlacementManager : MonoBehaviour
     {
       Pose hitPose = hits[0].pose;
 
-      // First time the preview lands on the grid — switch to correct placement panel
+      // First time the preview lands on the grid â€” switch to correct placement panel
       if (!placementUIShown)
       {
         placementUIShown = true;
@@ -121,7 +121,7 @@ public class BuildingPlacementManager : MonoBehaviour
 
       if (currentBuilding.placeableType == PlaceableType.Terrain)
       {
-        // Terrain: tap freely to place/replace tiles — only block taps on UI buttons
+        // Terrain: tap freely to place/replace tiles â€” only block taps on UI buttons
         bool overUI = Input.touchCount > 0
             ? EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId)
             : EventSystem.current.IsPointerOverGameObject();
@@ -130,7 +130,7 @@ public class BuildingPlacementManager : MonoBehaviour
       }
       else
       {
-        // Building preview always tracks — never blocked by UI
+        // Building preview always tracks â€” never blocked by UI
         MovePreview(hitPose.position);
       }
     }
@@ -235,7 +235,7 @@ public class BuildingPlacementManager : MonoBehaviour
   }
 
   // ---------------------------------------------------------------
-  // Confirm — place the building, then return to item panel
+  // Confirm â€” place the building, then return to item panel
   // ---------------------------------------------------------------
   public void ConfirmPlacement()
   {
@@ -254,10 +254,24 @@ public class BuildingPlacementManager : MonoBehaviour
       return;
     }
 
+    // Mark tiles occupied
     foreach (GridTile tile in highlightedTiles)
     {
       tile.isOccupied = true;
       tile.SetDefault();
+    }
+
+    // ðŸ”¹ NEW â€” detect flag placement BEFORE clearing preview
+    if (currentBuilding.placeableType == PlaceableType.Flag)
+    {
+      Vector3 pos = previewBuilding.transform.position;
+      Quaternion rot = previewBuilding.transform.rotation;
+
+      SaveSystem.Instance.SaveFlag(
+          pos,
+          rot,
+          currentBuilding.name
+      );
     }
 
     previewBuilding.name = "Placed Building";
@@ -270,7 +284,7 @@ public class BuildingPlacementManager : MonoBehaviour
   }
 
   // ---------------------------------------------------------------
-  // Cancel — destroy preview, then return to item panel
+  // Cancel â€” destroy preview, then return to item panel
   // ---------------------------------------------------------------
   public void CancelPlacement()
   {
@@ -285,7 +299,7 @@ public class BuildingPlacementManager : MonoBehaviour
   }
 
   // ---------------------------------------------------------------
-  // Rotate — cycles preview in 90° steps
+  // Rotate â€” cycles preview in 90Â° steps
   // ---------------------------------------------------------------
   public void RotateBuilding()
   {
