@@ -12,19 +12,13 @@ public class SurfaceSelectionManager : MonoBehaviour
 
   private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
-  // Strict guards — nothing happens unless both are true
   private bool scanMode = false;
   private bool surfaceSelected = false;
 
-  // Kept after first scan so subsequent categories reuse it
   private GridManager activeGrid = null;
   public bool IsGridReady => activeGrid != null;
   public GridManager GetActiveGrid() => activeGrid;
 
-  // ---------------------------------------------------------------
-  // Only called from UIManager.OnCategorySelected — never auto-starts.
-  // If a grid already exists this does nothing (UIManager skips scan).
-  // ---------------------------------------------------------------
   public void StartScanning()
   {
     if (IsGridReady)
@@ -45,9 +39,6 @@ public class SurfaceSelectionManager : MonoBehaviour
     Debug.Log("[SurfaceSelectionManager] Scanning started.");
   }
 
-  // ---------------------------------------------------------------
-  // Show / hide all grid tiles — called by the toggle button
-  // ---------------------------------------------------------------
   public void ToggleGrid()
   {
     if (activeGrid == null) return;
@@ -78,9 +69,6 @@ public class SurfaceSelectionManager : MonoBehaviour
     Debug.Log("[SurfaceSelectionManager] Rescanning started.");
   }
 
-  // ---------------------------------------------------------------
-  // Update — only active when scanMode == true AND no surface yet
-  // ---------------------------------------------------------------
   private void Update()
   {
     if (!scanMode || surfaceSelected)
@@ -112,9 +100,6 @@ public class SurfaceSelectionManager : MonoBehaviour
     }
   }
 
-  // ---------------------------------------------------------------
-  // Internal — runs once when the player taps a valid AR plane
-  // ---------------------------------------------------------------
   private void SelectSurface(ARPlane selectedPlane)
   {
     surfaceSelected = true;
@@ -122,11 +107,9 @@ public class SurfaceSelectionManager : MonoBehaviour
 
     Debug.Log("[SurfaceSelectionManager] Plane selected.");
 
-    // Highlight the chosen plane
     MeshRenderer r = selectedPlane.GetComponent<MeshRenderer>();
     if (r != null) r.material = selectedPlaneMaterial;
 
-    // Spawn the board at the plane's position
     Vector3 spawnPos = selectedPlane.transform.position;
     GameObject board = Instantiate(boardPrefab, spawnPos, hits[0].pose.rotation);
 
@@ -139,17 +122,22 @@ public class SurfaceSelectionManager : MonoBehaviour
       grid.GenerateGrid();
       grid.CullTilesOutsidePlane(selectedPlane);
 
-      // Store for reuse across categories
       activeGrid = grid;
 
-      // Hand grid reference to BuildingPlacementManager
+      // Hand grid to BuildingPlacementManager
       BuildingPlacementManager bpm = FindObjectOfType<BuildingPlacementManager>();
       if (bpm != null)
         bpm.SetGridManager(grid);
       else
         Debug.LogError("[SurfaceSelectionManager] BuildingPlacementManager not found!");
 
-      // Tell UIManager grid is ready → it will show the correct item panel
+      // Hand grid to FarmingManager
+      FarmingManager fm = FindObjectOfType<FarmingManager>();
+      if (fm != null)
+        fm.SetGridManager(grid);
+      else
+        Debug.LogWarning("[SurfaceSelectionManager] FarmingManager not found — farming won't work.");
+
       UIManager ui = FindObjectOfType<UIManager>();
       if (ui != null)
         ui.OnScanComplete();
@@ -161,7 +149,7 @@ public class SurfaceSelectionManager : MonoBehaviour
       Debug.LogError("[SurfaceSelectionManager] GridManager not found on board prefab!");
     }
 
-    // Disable further plane detection
+    // Disable plane detection — raycast stays usable for placement
     planeManager.enabled = false;
     raycastManager.enabled = false;
 
