@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ public class BuildingPlacementManager : MonoBehaviour
   {
     if (testBuildingPrefab == null)
     {
-      Debug.LogError("[BuildingPlacementManager] testBuildingPrefab not assigned!");
+      DevTools.LogError("[BuildingPlacementManager] testBuildingPrefab not assigned!");
       return;
     }
     StartPlacement(testBuildingPrefab);
@@ -250,7 +250,7 @@ public class BuildingPlacementManager : MonoBehaviour
 
     if (!currentPlacementValid)
     {
-      Debug.Log("[BuildingPlacementManager] Placement invalid, ignoring confirm.");
+      DevTools.Log("[BuildingPlacementManager] Placement invalid, ignoring confirm.");
       return;
     }
 
@@ -266,11 +266,15 @@ public class BuildingPlacementManager : MonoBehaviour
     {
       Vector3 pos = previewBuilding.transform.position;
       Quaternion rot = previewBuilding.transform.rotation;
+      
+      DistrictFlag df = previewBuilding.GetComponent<DistrictFlag>();
+      string dID = df != null ? df.districtID : "global";
 
       SaveSystem.Instance.SaveFlag(
           pos,
           rot,
-          currentBuilding.name
+          currentBuilding.name,
+          dID
       );
     }
 
@@ -323,6 +327,6 @@ public class BuildingPlacementManager : MonoBehaviour
     if (ui != null)
       ui.OnPlacementFinished();
     else
-      Debug.LogError("[BuildingPlacementManager] UIManager not found!");
+      DevTools.LogError("[BuildingPlacementManager] UIManager not found!");
   }
 }

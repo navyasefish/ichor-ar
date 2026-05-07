@@ -1,0 +1,102 @@
+using UnityEngine;
+
+public class BuildingResourceGenerator : MonoBehaviour
+{
+    [Header("Configuration")]
+    public ResourceType resourceType = ResourceType.Food;
+    public float generationRate = 1f; // Resources per minute
+    public float maxCapacity = 100f;
+
+    [Header("Current State")]
+    public float currentAmount = 0f;
+    public string assignedDistrictID = "global";
+
+    private GameObject fullIndicator;
+
+    private void Start()
+    {
+        InitializeDistrict();
+        fullIndicator = transform.Find("Full")?.gameObject;
+        UpdateFullIndicator();
+    }
+
+    private void InitializeDistrict()
+    {
+        DistrictFlag[] flags = FindObjectsOfType<DistrictFlag>();
+        if (flags.Length == 0) return;
+
+        DistrictFlag nearestFlag = null;
+        float minDistance = float.MaxValue;
+
+        foreach (var flag in flags)
+        {
+            float distance = Vector3.Distance(transform.position, flag.transform.position);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                nearestFlag = flag;
+            }
+        }
+
+        if (nearestFlag != null)
+        {
+            assignedDistrictID = nearestFlag.districtID;
+        }
+    }
+
+    private void Update()
+    {
+        GenerateResource();
+        UpdateFullIndicator();
+    }
+
+    private void GenerateResource()
+    {
+        if (currentAmount < maxCapacity)
+        {
+            float multiplier = 1.0f;
+            if (PlayerData.Instance != null)
+            {
+                multiplier = PlayerData.Instance.GetProductionMultiplier(resourceType);
+            }
+
+            currentAmount += (generationRate / 60f) * multiplier * Time.deltaTime;
+            
+            // Clamp to max capacity
+            if (currentAmount > maxCapacity)
+            {
+                currentAmount = maxCapacity;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Harvests the generated resources and transfers them to the Player Inventory.
+    /// </summary>
+    public void Harvest()
+    {
+        if (currentAmount <= 0) return;
+
+        int amountToTransfer = Mathf.FloorToInt(currentAmount);
+        
+        if (PlayerData.Instance != null)
+        {
+            PlayerData.Instance.AddResource(resourceType, amountToTransfer, assignedDistrictID);
+            currentAmount -= amountToTransfer; // Subtract harvested amount, keeping any fractional leftover
+            
+            DevTools.Log($"Harvested {amountToTransfer} {resourceType} from {gameObject.name} to district {assignedDistrictID}");
+        }
+        else
+        {
+            DevTools.LogError("PlayerData instance not found! Cannot harvest resources.");
+        }
+    }
+
+    private void UpdateFullIndicator()
+    {
+        if (fullIndicator != null)
+        {
+            fullIndicator.SetActive(currentAmount >= maxCapacity);
+        }
+    }
+}

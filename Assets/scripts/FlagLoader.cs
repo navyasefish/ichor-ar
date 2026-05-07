@@ -21,9 +21,14 @@ public class FlagLoader : MonoBehaviour
       Quaternion rot =
           Quaternion.Euler(flag.rotation);
 
-      Instantiate(flagPrefab, pos, rot);
+      GameObject flagObj = Instantiate(flagPrefab, pos, rot);
+      DistrictFlag df = flagObj.GetComponent<DistrictFlag>();
+      if (df != null)
+      {
+        df.districtID = flag.districtID;
+      }
 
-      Debug.Log("Loaded Flag: " + flag.flagId);
+      Debug.Log($"Loaded Flag: {flag.flagId} in district {flag.districtID}");
     }
   }
 }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
@@ -37,7 +37,7 @@ public class UIManager : MonoBehaviour
   {
     if (itemPanel == null)
     {
-      Debug.LogError("[UIManager] OnCategorySelected called with a null panel!");
+      DevTools.LogError("[UIManager] OnCategorySelected called with a null panel!");
       return;
     }
 
@@ -46,7 +46,7 @@ public class UIManager : MonoBehaviour
     // Grid already exists from a previous category — skip scan entirely
     if (ssm != null && ssm.IsGridReady)
     {
-      Debug.Log($"[UIManager] Grid exists, skipping scan → showing: {itemPanel.name}");
+      DevTools.Log($"[UIManager] Grid exists, skipping scan → showing: {itemPanel.name}");
 
       // Make sure BuildingPlacementManager has the grid reference
       BuildingPlacementManager bpm = FindObjectOfType<BuildingPlacementManager>();
@@ -60,14 +60,14 @@ public class UIManager : MonoBehaviour
 
     // First time — go through scan flow
     pendingItemPanel = itemPanel;
-    Debug.Log($"[UIManager] Category selected → pending panel: {itemPanel.name}");
+    DevTools.Log($"[UIManager] Category selected → pending panel: {itemPanel.name}");
 
     ShowPanel(scanPanel);
 
     if (ssm != null)
       ssm.StartScanning();
     else
-      Debug.LogError("[UIManager] SurfaceSelectionManager not found in scene!");
+      DevTools.LogError("[UIManager] SurfaceSelectionManager not found in scene!");
   }
 
   // -------------------------------------------------------------------
@@ -79,7 +79,7 @@ public class UIManager : MonoBehaviour
     if (ssm != null)
       ssm.ToggleGrid();
     else
-      Debug.LogWarning("[UIManager] ToggleGrid — SurfaceSelectionManager not found.");
+      DevTools.LogWarning("[UIManager] ToggleGrid — SurfaceSelectionManager not found.");
   }
 
   // -------------------------------------------------------------------
@@ -90,14 +90,14 @@ public class UIManager : MonoBehaviour
   {
     if (pendingItemPanel == null)
     {
-      Debug.LogError("[UIManager] OnScanComplete — pendingItemPanel is null!");
+      DevTools.LogError("[UIManager] OnScanComplete — pendingItemPanel is null!");
       return;
     }
 
     activeItemPanel = pendingItemPanel;
     pendingItemPanel = null;
 
-    Debug.Log($"[UIManager] Scan complete → showing: {activeItemPanel.name}");
+    DevTools.Log($"[UIManager] Scan complete → showing: {activeItemPanel.name}");
     ShowPanel(activeItemPanel);
   }
 
@@ -107,7 +107,7 @@ public class UIManager : MonoBehaviour
   // -------------------------------------------------------------------
   public void OnItemSelected()
   {
-    Debug.Log("[UIManager] Building on grid → showing placement panel.");
+    DevTools.Log("[UIManager] Building on grid → showing placement panel.");
     ShowPanel(placementPanel);
   }
 
@@ -117,7 +117,7 @@ public class UIManager : MonoBehaviour
   // -------------------------------------------------------------------
   public void OnTerrainSelected()
   {
-    Debug.Log("[UIManager] Terrain on grid → showing terrain placement panel.");
+    DevTools.Log("[UIManager] Terrain on grid → showing terrain placement panel.");
     ShowPanel(terrainPlacementPanel);
   }
 
@@ -127,7 +127,7 @@ public class UIManager : MonoBehaviour
   // -------------------------------------------------------------------
   public void OnBackFromItemPanel()
   {
-    Debug.Log("[UIManager] Back from item panel → cancelling placement, going to category.");
+    DevTools.Log("[UIManager] Back from item panel → cancelling placement, going to category.");
 
     BuildingPlacementManager bpm = FindObjectOfType<BuildingPlacementManager>();
     if (bpm != null) bpm.CancelPlacement();
@@ -169,12 +169,12 @@ public class UIManager : MonoBehaviour
   {
     if (activeItemPanel == null)
     {
-      Debug.LogWarning("[UIManager] OnPlacementFinished — no activeItemPanel, falling back to GoBack.");
+      DevTools.LogWarning("[UIManager] OnPlacementFinished — no activeItemPanel, falling back to GoBack.");
       GoBack();
       return;
     }
 
-    Debug.Log($"[UIManager] Placement finished → returning to: {activeItemPanel.name}");
+    DevTools.Log($"[UIManager] Placement finished → returning to: {activeItemPanel.name}");
     ShowPanelDirect(activeItemPanel);
   }
 
@@ -185,11 +185,11 @@ public class UIManager : MonoBehaviour
   {
     if (panel == null)
     {
-      Debug.LogError("[UIManager] ShowPanel — panel is null!");
+      DevTools.LogError("[UIManager] ShowPanel — panel is null!");
       return;
     }
 
-    Debug.Log("[UIManager] Opening panel: " + panel.name);
+    DevTools.Log("[UIManager] Opening panel: " + panel.name);
 
     if (currentPanel != null)
     {
