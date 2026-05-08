@@ -5,8 +5,8 @@ using UnityEngine.XR.ARFoundation;
 public class GridManager : MonoBehaviour
 {
   [SerializeField] private GameObject tilePrefab;
-  [SerializeField] private int gridWidth = 12;
-  [SerializeField] private int gridHeight = 12;
+  [SerializeField] private int gridWidth = 25;
+  [SerializeField] private int gridHeight = 25;
   [SerializeField] private float tileSize = 0.2f;
 
   public float TileSize => tileSize;

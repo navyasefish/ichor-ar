@@ -7,6 +7,9 @@ public class BuildingResourceGenerator : MonoBehaviour
     public float generationRate = 1f; // Resources per minute
     public float maxCapacity = 100f;
 
+    [Header("Animation")]
+    public GameObject deliveryAgentPrefab;
+
     [Header("Current State")]
     public float currentAmount = 0f;
     public string assignedDistrictID = "global";
@@ -22,6 +25,15 @@ public class BuildingResourceGenerator : MonoBehaviour
 
     private void InitializeDistrict()
     {
+        // 🔹 NEW — Prefer RoadConnector district
+        RoadConnector connector = GetComponent<RoadConnector>();
+        if (connector != null && connector.isConnected && connector.districtID != "none")
+        {
+            assignedDistrictID = connector.districtID;
+            DevTools.Log($"[ResourceGenerator] {gameObject.name} assigned to district {assignedDistrictID} via RoadConnector.");
+            return;
+        }
+
         DistrictFlag[] flags = FindObjectsOfType<DistrictFlag>();
         if (flags.Length == 0) return;
 
@@ -75,6 +87,14 @@ public class BuildingResourceGenerator : MonoBehaviour
     /// </summary>
     public void Harvest()
     {
+        // 🔹 NEW — Check for road connection
+        RoadConnector connector = GetComponent<RoadConnector>();
+        if (connector != null && !connector.isConnected)
+        {
+            DevTools.LogWarning($"[Harvest] {gameObject.name} is not connected to a road! Harvest blocked.");
+            return;
+        }
+
         if (currentAmount <= 0) return;
 
         int amountToTransfer = Mathf.FloorToInt(currentAmount);
@@ -84,6 +104,17 @@ public class BuildingResourceGenerator : MonoBehaviour
             PlayerData.Instance.AddResource(resourceType, amountToTransfer, assignedDistrictID);
             currentAmount -= amountToTransfer; // Subtract harvested amount, keeping any fractional leftover
             
+            // 🔹 TRIGGER DELIVERY ANIMATION
+            if (deliveryAgentPrefab != null && connector != null)
+            {
+                DeliverAnim.StartDelivery(
+                    deliveryAgentPrefab, 
+                    transform.position, 
+                    connector.gridCoordinate, 
+                    assignedDistrictID
+                );
+            }
+
             DevTools.Log($"Harvested {amountToTransfer} {resourceType} from {gameObject.name} to district {assignedDistrictID}");
         }
         else

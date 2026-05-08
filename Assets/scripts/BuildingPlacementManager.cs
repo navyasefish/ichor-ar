@@ -82,7 +82,7 @@ public class BuildingPlacementManager : MonoBehaviour
     placementMode = true;
     placementUIShown = false;
 
-    if (def.placeableType == PlaceableType.Building || def.placeableType == PlaceableType.Flag)
+    if (def.placeableType == PlaceableType.Building || def.placeableType == PlaceableType.Flag || def.placeableType == PlaceableType.Road)
     {
       previewBuilding = Instantiate(prefab);
       previewBuilding.name = "PreviewBuilding";
@@ -109,24 +109,35 @@ public class BuildingPlacementManager : MonoBehaviour
       if (!placementUIShown)
       {
         placementUIShown = true;
-        UIManager ui = FindObjectOfType<UIManager>();
-        if (ui != null)
+        
+        // ONLY show placement UI (Confirm/Cancel) for Buildings and Flags.
+        // Terrain and Roads are instant tap-to-place and stay in the item selection panel.
+        if (currentBuilding.placeableType == PlaceableType.Building || currentBuilding.placeableType == PlaceableType.Flag)
         {
-          if (currentBuilding.placeableType == PlaceableType.Terrain)
-            ui.OnTerrainSelected();   // confirm + cancel only
-          else
-            ui.OnItemSelected();      // confirm + cancel + rotate
+          UIManager ui = FindObjectOfType<UIManager>();
+          if (ui != null) ui.OnItemSelected();
         }
       }
 
-      if (currentBuilding.placeableType == PlaceableType.Terrain)
+      if (currentBuilding.placeableType == PlaceableType.Terrain || currentBuilding.placeableType == PlaceableType.Road)
       {
-        // Terrain: tap freely to place/replace tiles — only block taps on UI buttons
+        // Terrain/Road: tap freely to place/replace tiles — only block taps on UI buttons
         bool overUI = Input.touchCount > 0
             ? EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId)
             : EventSystem.current.IsPointerOverGameObject();
         if (!overUI)
-          HandleTerrainPlacement(hitPose.position);
+        {
+          if (currentBuilding.placeableType == PlaceableType.Terrain)
+            HandleTerrainPlacement(hitPose.position);
+          else
+            HandleRoadPlacement(hitPose.position);
+        }
+        
+        // Road still uses a preview to show where it will land
+        if (currentBuilding.placeableType == PlaceableType.Road)
+        {
+            MovePreview(hitPose.position);
+        }
       }
       else
       {
@@ -158,6 +169,47 @@ public class BuildingPlacementManager : MonoBehaviour
         Quaternion.identity
     );
     tile.terrainObject = terrain;
+  }
+
+  // ---------------------------------------------------------------
+  // Road: place on tap, no overlap
+  // ---------------------------------------------------------------
+  void HandleRoadPlacement(Vector3 worldPos)
+  {
+    bool tapped = (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+               || Input.GetMouseButtonDown(0);
+
+    if (!tapped) return;
+
+    GridTile tile = FindNearestTile(worldPos);
+    if (tile == null || tile.isOccupied) return;
+
+    // 🔹 Trigger district logic BEFORE placing
+    string inherited;
+    if (!IsRoadPlacementValid(tile, out inherited))
+    {
+        DevTools.LogWarning($"[RoadPlacement] Blocked at {tile.coordinate}: Would connect multiple districts.");
+        return; 
+    }
+
+    GameObject roadObj = Instantiate(
+        currentPlaceablePrefab,
+        tile.transform.position,
+        Quaternion.identity
+    );
+    
+    tile.isOccupied = true;
+    tile.placedObject = roadObj;
+
+    Road road = roadObj.GetComponent<Road>();
+    if (road != null) road.districtID = inherited;
+    
+    if (inherited != "none")
+    {
+        PropagateDistrictID(tile.coordinate, inherited);
+    }
+    
+    DevTools.Log($"[RoadPlacement] Road placed at {tile.coordinate}. District: {inherited}");
   }
 
   // ---------------------------------------------------------------
@@ -201,6 +253,37 @@ public class BuildingPlacementManager : MonoBehaviour
         continue;
       }
       highlightedTiles.Add(tile);
+    }
+
+    // 🔹 NEW — Check for road/flag conflicts
+    if (currentPlacementValid)
+    {
+        if (currentBuilding.placeableType == PlaceableType.Road)
+        {
+            string inherited;
+            if (!IsRoadPlacementValid(anchorTile, out inherited))
+                currentPlacementValid = false;
+        }
+        else if (currentBuilding.placeableType == PlaceableType.Flag)
+        {
+            DistrictFlag df = previewBuilding.GetComponent<DistrictFlag>();
+            string dID = df != null ? df.districtID : "global";
+            
+            Vector2Int[] neighbors = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+            foreach (Vector2Int dir in neighbors)
+            {
+                GridTile neighborTile = gridManager.GetTile(anchorTile.coordinate + dir);
+                if (neighborTile != null && neighborTile.placedObject != null)
+                {
+                    Road road = neighborTile.placedObject.GetComponent<Road>();
+                    if (road != null && road.districtID != "none" && road.districtID != dID)
+                    {
+                        currentPlacementValid = false;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     foreach (GridTile tile in highlightedTiles)
@@ -254,31 +337,87 @@ public class BuildingPlacementManager : MonoBehaviour
       return;
     }
 
-    // Mark tiles occupied
+    // Mark tiles occupied and store object reference
     foreach (GridTile tile in highlightedTiles)
     {
       tile.isOccupied = true;
+      tile.placedObject = previewBuilding;
       tile.SetDefault();
     }
 
     // 🔹 NEW — detect flag placement BEFORE clearing preview
     if (currentBuilding.placeableType == PlaceableType.Flag)
     {
-      Vector3 pos = previewBuilding.transform.position;
-      Quaternion rot = previewBuilding.transform.rotation;
+      // Convert to local coordinates relative to the grid board for persistence
+      Vector3 localPos = gridManager.transform.InverseTransformPoint(previewBuilding.transform.position);
+      Quaternion localRot = Quaternion.Inverse(gridManager.transform.rotation) * previewBuilding.transform.rotation;
+      
+      // Save grid coordinate for perfect alignment on reload
+      Vector2Int gridCoord = highlightedTiles.Count > 0 ? highlightedTiles[0].coordinate : Vector2Int.zero;
       
       DistrictFlag df = previewBuilding.GetComponent<DistrictFlag>();
       string dID = df != null ? df.districtID : "global";
 
+      // 🔹 NEW — Check if flag placement conflicts with existing road districts
+      Vector2Int[] neighbors = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+      foreach (Vector2Int dir in neighbors)
+      {
+          GridTile neighborTile = gridManager.GetTile(highlightedTiles[0].coordinate + dir);
+          if (neighborTile != null && neighborTile.placedObject != null)
+          {
+              Road road = neighborTile.placedObject.GetComponent<Road>();
+              if (road != null && road.districtID != "none" && road.districtID != dID)
+              {
+                  DevTools.LogWarning($"[FlagPlacement] Blocked: Flag {dID} is adjacent to road in district {road.districtID}");
+                  // Since we already instantiated and marked tiles, we might need to rollback?
+                  // Actually, UpdateTileHighlights should have blocked this.
+                  // Let's add the check there too.
+                  Destroy(previewBuilding);
+                  foreach (GridTile t in highlightedTiles) t.isOccupied = false;
+                  highlightedTiles.Clear();
+                  previewBuilding = null;
+                  placementMode = false;
+                  placementUIShown = false;
+                  NotifyPlacementFinished();
+                  return;
+              }
+          }
+      }
+
       SaveSystem.Instance.SaveFlag(
-          pos,
-          rot,
+          localPos,
+          localRot,
           currentBuilding.name,
-          dID
+          dID,
+          gridCoord
       );
+
+      // 🔹 NEW — Backpropagate district info to adjacent roads
+      foreach (Vector2Int dir in neighbors)
+      {
+          GridTile neighborTile = gridManager.GetTile(highlightedTiles[0].coordinate + dir);
+          if (neighborTile != null && neighborTile.placedObject != null)
+          {
+              Road road = neighborTile.placedObject.GetComponent<Road>();
+              if (road != null)
+              {
+                  PropagateDistrictID(neighborTile.coordinate, dID);
+              }
+          }
+      }
     }
 
-    previewBuilding.name = "Placed Building";
+    // 🔹 NEW — Handle Building connection to road
+    if (currentBuilding.placeableType == PlaceableType.Building)
+    {
+        RoadConnector connector = previewBuilding.GetComponent<RoadConnector>();
+        if (connector != null)
+        {
+            connector.CheckConnection(gridManager, highlightedTiles[0], currentBuilding.GetFootprint());
+        }
+    }
+
+    previewBuilding.name = "Placed " + currentBuilding.placeableType;
     highlightedTiles.Clear();
     previewBuilding = null;
     placementMode = false;
@@ -319,6 +458,113 @@ public class BuildingPlacementManager : MonoBehaviour
   public void SetGridManager(GridManager grid)
   {
     gridManager = grid;
+  }
+
+  private bool IsRoadPlacementValid(GridTile anchorTile, out string inheritedDistrict)
+  {
+    inheritedDistrict = "none";
+    if (gridManager == null || anchorTile == null) return false;
+
+    HashSet<string> adjacentDistricts = new HashSet<string>();
+    
+    Vector2Int[] neighbors = {
+        Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right
+    };
+
+    foreach (Vector2Int dir in neighbors)
+    {
+        GridTile neighborTile = gridManager.GetTile(anchorTile.coordinate + dir);
+        if (neighborTile != null && neighborTile.placedObject != null)
+        {
+            // Check for Flag
+            DistrictFlag flag = neighborTile.placedObject.GetComponent<DistrictFlag>();
+            if (flag != null)
+            {
+                adjacentDistricts.Add(flag.districtID);
+            }
+            else
+            {
+                // Check for Road
+                Road road = neighborTile.placedObject.GetComponent<Road>();
+                if (road != null && road.districtID != "none")
+                {
+                    adjacentDistricts.Add(road.districtID);
+                }
+            }
+        }
+    }
+
+    if (adjacentDistricts.Count > 1)
+    {
+        DevTools.LogWarning("[RoadPlacement] Blocked: Adjacent to multiple districts.");
+        return false;
+    }
+
+    if (adjacentDistricts.Count == 1)
+    {
+        foreach (string d in adjacentDistricts) inheritedDistrict = d;
+    }
+
+    return true; 
+  }
+
+  /// <summary>
+  /// Backpropagates a district ID through a connected road network.
+  /// Also updates any buildings adjacent to the network.
+  /// </summary>
+  public void PropagateDistrictID(Vector2Int startCoord, string dID)
+  {
+    if (gridManager == null || dID == "none") return;
+
+    Queue<Vector2Int> queue = new Queue<Vector2Int>();
+    HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+    queue.Enqueue(startCoord);
+    visited.Add(startCoord);
+
+    Vector2Int[] neighbors = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+    while (queue.Count > 0)
+    {
+        Vector2Int current = queue.Dequeue();
+        GridTile tile = gridManager.GetTile(current);
+        if (tile == null || tile.placedObject == null) continue;
+
+        Road road = tile.placedObject.GetComponent<Road>();
+        if (road == null) continue;
+
+        // Update the road itself
+        road.districtID = dID;
+
+        // Check all 4 neighbors for more roads or buildings
+        foreach (Vector2Int dir in neighbors)
+        {
+            Vector2Int nextCoord = current + dir;
+            if (visited.Contains(nextCoord)) continue;
+
+            GridTile nextTile = gridManager.GetTile(nextCoord);
+            if (nextTile == null || nextTile.placedObject == null) continue;
+
+            // If it's a road, add to queue
+            Road nextRoad = nextTile.placedObject.GetComponent<Road>();
+            if (nextRoad != null)
+            {
+                // Safety check: don't overwrite if it's already a different district (existing rule)
+                // However, if we are backpropagating from a flag, we want to unify the network.
+                // The IsRoadPlacementValid already prevents connecting two different districts.
+                queue.Enqueue(nextCoord);
+                visited.Add(nextCoord);
+            }
+            
+            // If it's a building, update its connector
+            RoadConnector connector = nextTile.placedObject.GetComponent<RoadConnector>();
+            if (connector != null)
+            {
+                connector.SetDistrict(dID);
+            }
+        }
+    }
+    
+    DevTools.Log($"[DistrictPropagation] Completed propagation for district: {dID}");
   }
 
   private void NotifyPlacementFinished()

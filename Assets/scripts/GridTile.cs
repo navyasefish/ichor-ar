@@ -12,8 +12,9 @@ public class GridTile : MonoBehaviour
 
   public bool isOccupied = false;
 
-  // NEW: store terrain placed on this tile
+  // NEW: store objects placed on this tile
   public GameObject terrainObject;
+  public GameObject placedObject;
   public void SetDefault()
   {
     tileRenderer.material = defaultMaterial;

@@ -11,6 +11,7 @@ public class DistrictManager : MonoBehaviour
 
     private List<DistrictFlag> activeFlags = new List<DistrictFlag>();
     private float nextCheckTime;
+    private TMPro.TextMeshProUGUI testText;
 
     private void Awake()
     {
@@ -18,10 +19,20 @@ public class DistrictManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            FindTestText();
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void FindTestText()
+    {
+        GameObject testObj = GameObject.Find("Test");
+        if (testObj != null)
+        {
+            testText = testObj.GetComponent<TMPro.TextMeshProUGUI>();
         }
     }
 
@@ -48,6 +59,11 @@ public class DistrictManager : MonoBehaviour
         {
             activeFlags.Remove(flag);
         }
+    }
+
+    public DistrictFlag GetFlagByID(string dID)
+    {
+        return activeFlags.Find(f => f.districtID == dID);
     }
 
     private void UpdateCurrentDistrict()
@@ -78,6 +94,21 @@ public class DistrictManager : MonoBehaviour
                 currentDistrictID = closestFlag.districtID;
                 DevTools.Log($"District changed to: {currentDistrictID}");
             }
+        }
+
+        // Update the 'Test' TMP display
+        if (testText != null)
+        {
+            if (DevTools.Instance != null && !DevTools.Instance.debugMode)
+            {
+                testText.text = currentDistrictID;
+            }
+            // If debugMode is on, we let DevTools handle the status text
+        }
+        else
+        {
+            // Try to find it again if it was missing (e.g. scene change)
+            FindTestText();
         }
     }
 }

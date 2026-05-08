@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class DevTools : MonoBehaviour
 {
@@ -6,6 +7,15 @@ public class DevTools : MonoBehaviour
 
     [Header("Debug Settings")]
     public bool debugMode = false;
+    public bool anchorBasedSpawning = true;
+    public bool saveState = true;
+    public TextMeshProUGUI statusText;
+
+    public void ToggleAnchorBasedSpawning()
+    {
+        anchorBasedSpawning = !anchorBasedSpawning;
+        SetStatus($"Anchor Spawning: {(anchorBasedSpawning ? "ENABLED" : "DISABLED")}");
+    }
 
     private void Awake()
     {
@@ -51,5 +61,14 @@ public class DevTools : MonoBehaviour
         {
             Debug.LogError(message);
         }
+    }
+
+    public static void SetStatus(string message)
+    {
+        if (Instance != null && Instance.statusText != null)
+        {
+            Instance.statusText.text = message;
+        }
+        Log($"[STATUS] {message}");
     }
 }

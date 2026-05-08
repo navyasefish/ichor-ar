@@ -25,8 +25,13 @@ public class SaveSystem : MonoBehaviour
 
 
   // FLAG SAVE
-  public void SaveFlag(Vector3 position, Quaternion rotation, string flagId, string districtID)
+  public void SaveFlag(Vector3 position, Quaternion rotation, string flagId, string districtID, Vector2Int gridCoord)
   {
+    if (DevTools.Instance != null && !DevTools.Instance.saveState)
+    {
+        DevTools.Log("[SAVE] saveState is disabled. Skipping save.");
+        return;
+    }
     SaveData data = LoadData();
  
     FlagSaveData flag = new FlagSaveData
@@ -34,7 +39,8 @@ public class SaveSystem : MonoBehaviour
       flagId = flagId,
       districtID = districtID,
       position = position,
-      rotation = rotation.eulerAngles
+      rotation = rotation.eulerAngles,
+      gridCoord = gridCoord
     };
  
     data.flags.Add(flag);
@@ -42,11 +48,16 @@ public class SaveSystem : MonoBehaviour
     string json = JsonUtility.ToJson(data, true);
     File.WriteAllText(savePath, json);
  
-    DevTools.Log($"Flag saved: {flagId} in district {districtID}");
+    DevTools.SetStatus($"Flag Saved: {flagId}");
+    DevTools.Log($"[SAVE] Flag '{flagId}' saved successfully at local position {flag.position}");
   }
 
   public void SaveAllData(SaveData data)
   {
+    if (DevTools.Instance != null && !DevTools.Instance.saveState)
+    {
+        return;
+    }
     string json = JsonUtility.ToJson(data, true);
     File.WriteAllText(savePath, json);
   }
@@ -71,6 +82,12 @@ public class SaveSystem : MonoBehaviour
   // LOAD DATA
   public SaveData LoadData()
   {
+    if (DevTools.Instance != null && !DevTools.Instance.saveState)
+    {
+        DevTools.Log("[LOAD] saveState is disabled. Returning fresh state.");
+        return new SaveData();
+    }
+
     if (File.Exists(savePath))
     {
       string json = File.ReadAllText(savePath);
@@ -125,4 +142,5 @@ public class FlagSaveData
   public string districtID;
   public Vector3 position;
   public Vector3 rotation;
+  public Vector2Int gridCoord;
 }

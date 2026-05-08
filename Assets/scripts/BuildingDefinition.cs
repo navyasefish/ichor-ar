@@ -5,7 +5,8 @@ public enum PlaceableType
 {
   Terrain,
   Building,
-  Flag
+  Flag,
+  Road
 }
 
 

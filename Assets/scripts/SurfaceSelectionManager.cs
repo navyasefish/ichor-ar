@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -136,11 +136,40 @@ public class SurfaceSelectionManager : MonoBehaviour
 
     if (grid != null)
     {
+      DevTools.Log("[BOARD] Surface Selected. Building Grid...");
       grid.GenerateGrid();
       grid.CullTilesOutsidePlane(selectedPlane);
 
       // Store for reuse across categories
       activeGrid = grid;
+
+      // 🔹 NEW — Anchor the board to the physical world
+      ARAnchorManager anchorManager = GetComponent<ARAnchorManager>();
+      if (anchorManager != null && DevTools.Instance != null && DevTools.Instance.anchorBasedSpawning)
+      {
+          // Create the anchor and parent the board to it
+          ARAnchor anchor = anchorManager.AddAnchor(new Pose(spawnPos, hits[0].pose.rotation));
+          if (anchor != null)
+          {
+              board.transform.SetParent(anchor.transform, true);
+              DevTools.Log("[ANCHOR] Board parented to ARAnchor successfully.");
+          }
+      }
+      else if (anchorManager != null && DevTools.Instance != null && !DevTools.Instance.anchorBasedSpawning)
+      {
+          DevTools.Log("[ANCHOR] Anchor spawning disabled in DevTools. Skipping anchoring.");
+      }
+
+      // 🔹 NEW — Load saved flags relative to the new board
+      if (FlagLoader.Instance != null)
+      {
+          DevTools.Log("[LOAD] FlagLoader found. Triggering flag load...");
+          FlagLoader.Instance.LoadFlags(grid);
+      }
+      else
+      {
+          DevTools.LogError("[LOAD] FlagLoader.Instance is NULL! Is it in the scene?");
+      }
 
       // Hand grid reference to BuildingPlacementManager
       BuildingPlacementManager bpm = FindObjectOfType<BuildingPlacementManager>();

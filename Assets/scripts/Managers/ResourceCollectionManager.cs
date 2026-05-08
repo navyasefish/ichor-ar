@@ -30,11 +30,22 @@ public class ResourceCollectionManager : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, 100f, buildingLayer))
         {
+            DevTools.Log($"[Harvest] Raycast hit: {hit.collider.gameObject.name} on layer {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
             BuildingResourceGenerator generator = hit.collider.GetComponentInParent<BuildingResourceGenerator>();
             if (generator != null)
             {
+                DevTools.Log($"[Harvest] Triggering harvest on {generator.gameObject.name}");
                 generator.Harvest();
             }
+            else
+            {
+                DevTools.LogWarning($"[Harvest] Hit object {hit.collider.gameObject.name} but found no BuildingResourceGenerator in parents.");
+            }
+        }
+        else
+        {
+            // Optional: log if we hit nothing at all on that layer
+            // DevTools.Log("[Harvest] Raycast missed all objects on buildingLayer.");
         }
     }
 }

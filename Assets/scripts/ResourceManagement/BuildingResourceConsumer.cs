@@ -24,6 +24,15 @@ public class BuildingResourceConsumer : MonoBehaviour
 
     private void InitializeDistrict()
     {
+        // 🔹 NEW — Prefer RoadConnector district
+        RoadConnector connector = GetComponent<RoadConnector>();
+        if (connector != null && connector.isConnected && connector.districtID != "none")
+        {
+            assignedDistrictID = connector.districtID;
+            DevTools.Log($"[ResourceConsumer] {gameObject.name} assigned to district {assignedDistrictID} via RoadConnector.");
+            return;
+        }
+
         DistrictFlag[] flags = FindObjectsOfType<DistrictFlag>();
         if (flags.Length == 0) return;
 
