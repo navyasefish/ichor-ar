@@ -311,6 +311,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9d337e43f86faf84d978600cfa85d043, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3706574196114801549}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9d337e43f86faf84d978600cfa85d043, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7671728467687130144}
   m_SourcePrefab: {fileID: 100100000, guid: 9d337e43f86faf84d978600cfa85d043, type: 3}
 --- !u!1 &8257725603272169069 stripped
 GameObject:
@@ -332,6 +335,10 @@ MonoBehaviour:
   placeableType: 1
   shape: 1
   tileSize: 0.2
+  costGold: 0
+  costStone: 0
+  costFood: 5
+  costIchor: 0
 --- !u!65 &5374661906123012606
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -404,6 +411,20 @@ MonoBehaviour:
   isConnected: 0
   districtID: none
   gridCoordinate: {x: 0, y: 0}
+--- !u!114 &7671728467687130144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8257725603272169069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f1ab29ff2fc4494c9a32247189de330, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnInterval: 15
+  spawnOnStart: 1
 --- !u!4 &8778224875004218583 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9d337e43f86faf84d978600cfa85d043, type: 3}

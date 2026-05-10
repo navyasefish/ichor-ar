@@ -3,6 +3,7 @@ using UnityEngine;
 public class DistrictFlag : MonoBehaviour
 {
     [Header("District Settings")]
+    public string godName = "Zeus"; // e.g., Zeus, Ares, etc.
     public string districtID = "district_1";
 
     private void OnEnable()

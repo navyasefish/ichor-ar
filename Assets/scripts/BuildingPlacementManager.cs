@@ -184,6 +184,13 @@ public class BuildingPlacementManager : MonoBehaviour
     GridTile tile = FindNearestTile(worldPos);
     if (tile == null || tile.isOccupied) return;
 
+    // 🔹 NEW — Check costs
+    if (!CanAfford(currentBuilding))
+    {
+        DevTools.LogWarning($"[RoadPlacement] Cannot afford road! Cost: {currentBuilding.costGold} Gold, {currentBuilding.costStone} Stone.");
+        return;
+    }
+
     // 🔹 Trigger district logic BEFORE placing
     string inherited;
     if (!IsRoadPlacementValid(tile, out inherited))
@@ -204,6 +211,9 @@ public class BuildingPlacementManager : MonoBehaviour
     Road road = roadObj.GetComponent<Road>();
     if (road != null) road.districtID = inherited;
     
+    // 🔹 Spend resources
+    SpendResources(currentBuilding);
+
     if (inherited != "none")
     {
         PropagateDistrictID(tile.coordinate, inherited);
@@ -337,6 +347,16 @@ public class BuildingPlacementManager : MonoBehaviour
       return;
     }
 
+    // 🔹 NEW — Check costs (Flags are free)
+    if (currentBuilding.placeableType != PlaceableType.Flag)
+    {
+        if (!CanAfford(currentBuilding))
+        {
+            DevTools.LogWarning($"[Placement] Cannot afford {currentBuilding.gameObject.name}!");
+            return;
+        }
+    }
+
     // Mark tiles occupied and store object reference
     foreach (GridTile tile in highlightedTiles)
     {
@@ -357,6 +377,18 @@ public class BuildingPlacementManager : MonoBehaviour
       
       DistrictFlag df = previewBuilding.GetComponent<DistrictFlag>();
       string dID = df != null ? df.districtID : "global";
+      string gName = df != null ? df.godName : "Unknown";
+
+      // 🔹 NEW — One flag per god type rule
+      DistrictFlag[] allFlags = FindObjectsOfType<DistrictFlag>();
+      foreach (var oldFlag in allFlags)
+      {
+          if (oldFlag != df && oldFlag.godName == gName)
+          {
+              DevTools.Log($"[FlagPlacement] Replacing existing {gName} flag.");
+              RemoveFlagAndCleanup(oldFlag);
+          }
+      }
 
       // 🔹 NEW — Check if flag placement conflicts with existing road districts
       Vector2Int[] neighbors = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
@@ -415,6 +447,12 @@ public class BuildingPlacementManager : MonoBehaviour
         {
             connector.CheckConnection(gridManager, highlightedTiles[0], currentBuilding.GetFootprint());
         }
+    }
+
+    // 🔹 Spend resources (Flags are free)
+    if (currentBuilding.placeableType != PlaceableType.Flag)
+    {
+        SpendResources(currentBuilding);
     }
 
     previewBuilding.name = "Placed " + currentBuilding.placeableType;
@@ -547,6 +585,127 @@ public class BuildingPlacementManager : MonoBehaviour
     }
     
     DevTools.Log($"[DistrictPropagation] Completed propagation for district: {dID}");
+  }
+
+  private bool CanAfford(BuildingDefinition def)
+  {
+      if (PlayerData.Instance == null) return true;
+      string dID = DistrictManager.Instance != null ? DistrictManager.Instance.currentDistrictID : "global";
+
+      bool enough = true;
+      if (def.costGold > 0 && !PlayerData.Instance.HasEnough(ResourceType.Gold, def.costGold, dID)) enough = false;
+      if (def.costStone > 0 && !PlayerData.Instance.HasEnough(ResourceType.Stone, def.costStone, dID)) enough = false;
+      if (def.costFood > 0 && !PlayerData.Instance.HasEnough(ResourceType.Food, def.costFood, dID)) enough = false;
+      if (def.costIchor > 0 && !PlayerData.Instance.HasEnough(ResourceType.Ichor, def.costIchor, dID)) enough = false;
+
+      return enough;
+  }
+
+  private void SpendResources(BuildingDefinition def)
+  {
+      if (PlayerData.Instance == null) return;
+      string dID = DistrictManager.Instance != null ? DistrictManager.Instance.currentDistrictID : "global";
+
+      if (def.costGold > 0) PlayerData.Instance.SpendResource(ResourceType.Gold, def.costGold, dID);
+      if (def.costStone > 0) PlayerData.Instance.SpendResource(ResourceType.Stone, def.costStone, dID);
+      if (def.costFood > 0) PlayerData.Instance.SpendResource(ResourceType.Food, def.costFood, dID);
+      if (def.costIchor > 0) PlayerData.Instance.SpendResource(ResourceType.Ichor, def.costIchor, dID);
+  }
+
+  private void RemoveFlagAndCleanup(DistrictFlag flag)
+  {
+      // Find the tile it was on
+      GridTile flagTile = null;
+      foreach (var tile in gridManager.GetComponentsInChildren<GridTile>())
+      {
+          if (tile.placedObject == flag.gameObject)
+          {
+              flagTile = tile;
+              break;
+          }
+      }
+
+      if (flagTile == null) 
+      {
+          Destroy(flag.gameObject);
+          return;
+      }
+
+      // Clear the tiles it occupied
+      Vector2Int[] neighbors = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+      List<Vector2Int> roadSeeds = new List<Vector2Int>();
+
+      foreach (Vector2Int dir in neighbors)
+      {
+          GridTile neighbor = gridManager.GetTile(flagTile.coordinate + dir);
+          if (neighbor != null && neighbor.placedObject != null && neighbor.placedObject.GetComponent<Road>() != null)
+          {
+              roadSeeds.Add(neighbor.coordinate);
+          }
+      }
+
+      // 1. Delete the flag object
+      Destroy(flag.gameObject);
+      flagTile.isOccupied = false;
+      flagTile.placedObject = null;
+
+      // 2. Un-propagate the district from all connected roads
+      foreach (Vector2Int seed in roadSeeds)
+      {
+          ResetRoadNetwork(seed);
+      }
+
+      // 3. Re-scan for other flags to re-establish districts if any survived or were adjacent
+      DistrictFlag[] remainingFlags = FindObjectsOfType<DistrictFlag>();
+      foreach (var rf in remainingFlags)
+      {
+          // Find its tile and re-propagate
+          foreach (var tile in gridManager.GetComponentsInChildren<GridTile>())
+          {
+              if (tile.placedObject == rf.gameObject)
+              {
+                  PropagateDistrictID(tile.coordinate, rf.districtID);
+                  break;
+              }
+          }
+      }
+  }
+
+  private void ResetRoadNetwork(Vector2Int startCoord)
+  {
+      Queue<Vector2Int> queue = new Queue<Vector2Int>();
+      HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
+      queue.Enqueue(startCoord);
+      visited.Add(startCoord);
+      Vector2Int[] neighbors = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+
+      while (queue.Count > 0)
+      {
+          Vector2Int current = queue.Dequeue();
+          GridTile tile = gridManager.GetTile(current);
+          if (tile == null || tile.placedObject == null) continue;
+          
+          Road road = tile.placedObject.GetComponent<Road>();
+          if (road != null)
+          {
+              road.districtID = "none";
+              foreach (Vector2Int dir in neighbors)
+              {
+                  Vector2Int next = current + dir;
+                  if (!visited.Contains(next))
+                  {
+                      queue.Enqueue(next);
+                      visited.Add(next);
+                  }
+              }
+          }
+
+          RoadConnector connector = tile.placedObject.GetComponent<RoadConnector>();
+          if (connector != null)
+          {
+              connector.SetDistrict("none");
+          }
+      }
   }
 
   private void NotifyPlacementFinished()
