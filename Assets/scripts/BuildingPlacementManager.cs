@@ -520,45 +520,27 @@ public class BuildingPlacementManager : MonoBehaviour
     HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
     queue.Enqueue(startCoord);
     visited.Add(startCoord);
-
     Vector2Int[] neighbors = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
-    while (queue.Count > 0)
-    {
+    while (queue.Count > 0){
         Vector2Int current = queue.Dequeue();
         GridTile tile = gridManager.GetTile(current);
         if (tile == null || tile.placedObject == null) continue;
-
         Road road = tile.placedObject.GetComponent<Road>();
         if (road == null) continue;
-
-        // Update the road itself
         road.districtID = dID;
-
-        // Check all 4 neighbors for more roads or buildings
-        foreach (Vector2Int dir in neighbors)
-        {
+        foreach (Vector2Int dir in neighbors){
             Vector2Int nextCoord = current + dir;
             if (visited.Contains(nextCoord)) continue;
-
             GridTile nextTile = gridManager.GetTile(nextCoord);
             if (nextTile == null || nextTile.placedObject == null) continue;
-
-            // If it's a road, add to queue
             Road nextRoad = nextTile.placedObject.GetComponent<Road>();
-            if (nextRoad != null)
-            {
-                // Safety check: don't overwrite if it's already a different district (existing rule)
-                // However, if we are backpropagating from a flag, we want to unify the network.
-                // The IsRoadPlacementValid already prevents connecting two different districts.
+            if (nextRoad != null){
                 queue.Enqueue(nextCoord);
                 visited.Add(nextCoord);
             }
-            
-            // If it's a building, update its connector
             RoadConnector connector = nextTile.placedObject.GetComponent<RoadConnector>();
-            if (connector != null)
-            {
+            if (connector != null){
                 connector.SetDistrict(dID);
             }
         }
