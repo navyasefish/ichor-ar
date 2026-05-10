@@ -29,6 +29,12 @@ public class BuildingDefinition : MonoBehaviour
     [Tooltip("Size of one grid tile")]
     public float tileSize = 0.2f;
 
+    [Header("Placement Cost")]
+    public int costGold = 0;
+    public int costStone = 0;
+    public int costFood = 0;
+    public int costIchor = 0;
+
   public List<Vector2Int> GetFootprint()
     {
         List<Vector2Int> tiles = new List<Vector2Int>();
