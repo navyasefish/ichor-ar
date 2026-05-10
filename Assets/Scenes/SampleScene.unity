@@ -1464,7 +1464,7 @@ MonoBehaviour:
         m_MethodName: StartTerrainPlacement
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 193214076}
+          m_ObjectArgument: {fileID: 6803813978362467400, guid: 55d90fa1bc733314dbd6b197db879edf, type: 3}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.GameObject, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -7259,7 +7259,7 @@ MonoBehaviour:
         m_MethodName: StartCropPlanting
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: bed07656c5d67e44aa0808970d293b5d, type: 2}
+          m_ObjectArgument: {fileID: 11400000, guid: 4fb55ead514310f4dac74bdc5b270969, type: 2}
           m_ObjectArgumentAssemblyTypeName: CropDefinition, Assembly-CSharp
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -13313,9 +13313,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   arRaycastManager: {fileID: 331264287}
-  soilTilePrefab: {fileID: 783530869448371506, guid: 53f12bf2582247741944488207b92fbe, type: 3}
+  soilTilePrefab: {fileID: 2036175958794483903, guid: 1c5241114f9e9db4ba3f9c78b68db40e, type: 3}
   availableCrops:
   - {fileID: 11400000, guid: bed07656c5d67e44aa0808970d293b5d, type: 2}
+  - {fileID: 11400000, guid: 4fb55ead514310f4dac74bdc5b270969, type: 2}
+  - {fileID: 11400000, guid: 1e920e69c91ed784ebb676627b5ce7a2, type: 2}
 --- !u!1 &1193353699
 GameObject:
   m_ObjectHideFlags: 0
@@ -18824,7 +18826,7 @@ MonoBehaviour:
         m_MethodName: StartCropPlanting
         m_Mode: 2
         m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: bed07656c5d67e44aa0808970d293b5d, type: 2}
+          m_ObjectArgument: {fileID: 11400000, guid: 1e920e69c91ed784ebb676627b5ce7a2, type: 2}
           m_ObjectArgumentAssemblyTypeName: CropDefinition, Assembly-CSharp
           m_IntArgument: 0
           m_FloatArgument: 0
@@ -21259,7 +21261,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildingLayer:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 64
 --- !u!114 &2049758218
 MonoBehaviour:
   m_ObjectHideFlags: 0
