@@ -9,6 +9,8 @@ public class BuildingResourceGenerator : MonoBehaviour
 
     [Header("Animation")]
     public GameObject deliveryAgentPrefab;
+    public float deliveryAgentSpeed = 0.5f;
+    private bool isDelivering = false;
 
     [Header("Current State")]
     public float currentAmount = 0f;
@@ -95,32 +97,59 @@ public class BuildingResourceGenerator : MonoBehaviour
             return;
         }
 
+        if (isDelivering)
+        {
+            DevTools.Log("[Harvest] Already delivering resources! Please wait.");
+            return;
+        }
+
         if (currentAmount <= 0) return;
 
         int amountToTransfer = Mathf.FloorToInt(currentAmount);
         
+        // 🔹 TRIGGER DELIVERY ANIMATION
+        if (deliveryAgentPrefab != null && connector != null)
+        {
+            isDelivering = true;
+            currentAmount -= amountToTransfer; // Remove from building immediately
+
+            DeliverAnim.StartDelivery(
+                deliveryAgentPrefab, 
+                transform.position, 
+                connector.gridCoordinate, 
+                assignedDistrictID,
+                deliveryAgentSpeed,
+                this,
+                amountToTransfer
+            );
+
+            DevTools.Log($"[Harvest] {gameObject.name} dispatched agent with {amountToTransfer} {resourceType}.");
+        }
+        else if (PlayerData.Instance != null)
+        {
+            // Fallback if no animation is possible (no road/prefab)
+            PlayerData.Instance.AddResource(resourceType, amountToTransfer, assignedDistrictID);
+            currentAmount -= amountToTransfer;
+            DevTools.Log($"Harvested {amountToTransfer} {resourceType} from {gameObject.name} (Direct)");
+        }
+    }
+
+    /// <summary>
+    /// Called by the delivery agent when it reaches the flag.
+    /// </summary>
+    public void DeliverResources(int amount)
+    {
         if (PlayerData.Instance != null)
         {
-            PlayerData.Instance.AddResource(resourceType, amountToTransfer, assignedDistrictID);
-            currentAmount -= amountToTransfer; // Subtract harvested amount, keeping any fractional leftover
-            
-            // 🔹 TRIGGER DELIVERY ANIMATION
-            if (deliveryAgentPrefab != null && connector != null)
-            {
-                DeliverAnim.StartDelivery(
-                    deliveryAgentPrefab, 
-                    transform.position, 
-                    connector.gridCoordinate, 
-                    assignedDistrictID
-                );
-            }
+            PlayerData.Instance.AddResource(resourceType, amount, assignedDistrictID);
+            DevTools.Log($"[ResourceGenerator] {gameObject.name} agent delivered {amount} {resourceType} to district {assignedDistrictID}.");
+        }
+    }
 
-            DevTools.Log($"Harvested {amountToTransfer} {resourceType} from {gameObject.name} to district {assignedDistrictID}");
-        }
-        else
-        {
-            DevTools.LogError("PlayerData instance not found! Cannot harvest resources.");
-        }
+    public void OnDeliveryComplete()
+    {
+        isDelivering = false;
+        DevTools.Log($"[ResourceGenerator] {gameObject.name} delivery agent returned.");
     }
 
     private void UpdateFullIndicator()

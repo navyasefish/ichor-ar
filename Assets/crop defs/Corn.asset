@@ -10,17 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 66d9e8cee4f16ee4c8de3794c08ba97f, type: 3}
-  m_Name: wheat
+  m_Name: Corn
   m_EditorClassIdentifier: 
-  cropName: Wheat
-  cropIcon: {fileID: 0}
+  cropName: Corn
+  cropIcon: {fileID: 21300000, guid: 233118c58c9fc1d44b6440c3ba1a552d, type: 3}
   seedCost: 1
   harvestYield: 3
   stagePrefabs:
-  - {fileID: 246138062469685813, guid: 9ee54d940fced754ea2b8e4767387ecd, type: 3}
-  - {fileID: 7517447860949442293, guid: 4b6ad725c4b96be4b950942c78c4d49f, type: 3}
-  - {fileID: 884713698948903153, guid: 47da2fcd771b0ed4eab7f5b10170940b, type: 3}
+  - {fileID: 5276477032848271736, guid: db2dd9df7c6183f45b872940a823a3a6, type: 3}
+  - {fileID: 5952097315365324166, guid: eb95035aaf466474983cc442b06a0f3e, type: 3}
   secondsPerStage:
-  - 5
-  - 5
-  - 5
+  - 15
+  - 15
