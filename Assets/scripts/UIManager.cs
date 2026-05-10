@@ -26,7 +26,7 @@ public class UIManager : MonoBehaviour
 
   void Start()
   {
-    ShowPanel(homePanel);
+    ShowPanel(startPanel);
   }
 
   // -------------------------------------------------------------------
