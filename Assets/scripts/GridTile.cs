@@ -42,7 +42,6 @@ public class GridTile : MonoBehaviour
   }
 
   // NEW: store objects placed on this tile
-  public GameObject terrainObject;
   public GameObject placedObject;
   public void SetDefault()
   {
