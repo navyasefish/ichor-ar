@@ -11,21 +11,28 @@ public class DeliverAnim : MonoBehaviour
     private List<Vector3> pathPoints = new List<Vector3>();
     private string districtID;
     private Vector3 originalPos;
+    private BuildingResourceGenerator owner;
+    private int deliveryAmount;
 
     /// <summary>
     /// Starts the delivery animation from a building to its district flag.
     /// </summary>
-    public static void StartDelivery(GameObject modelPrefab, Vector3 startWorldPos, Vector2Int startGridCoord, string dID)
+    public static void StartDelivery(GameObject modelPrefab, Vector3 startWorldPos, Vector2Int startGridCoord, string dID, float speed = 0.5f, BuildingResourceGenerator callbackOwner = null, int amount = 0)
     {
         DistrictFlag flag = DistrictManager.Instance.GetFlagByID(dID);
         if (flag == null)
         {
             DevTools.LogWarning($"[DeliverAnim] No flag found for district {dID}");
+            callbackOwner?.OnDeliveryComplete(); // Ensure we unlock if we can't start
             return;
         }
 
         GridManager grid = FindObjectOfType<GridManager>();
-        if (grid == null) return;
+        if (grid == null)
+        {
+            callbackOwner?.OnDeliveryComplete();
+            return;
+        }
 
         // Find the road tile adjacent to the flag
         Vector2Int endGridCoord = FindRoadNearFlag(grid, flag);
@@ -35,15 +42,28 @@ public class DeliverAnim : MonoBehaviour
         if (gridPath == null || gridPath.Count == 0)
         {
             DevTools.LogWarning("[DeliverAnim] No road path found to flag!");
+            callbackOwner?.OnDeliveryComplete();
             return;
         }
 
         // Instantiate the model
         GameObject deliveryObj = Instantiate(modelPrefab, startWorldPos, Quaternion.identity);
-        DeliverAnim anim = deliveryObj.AddComponent<DeliverAnim>();
+        
+        // Use existing DeliverAnim if prefab has it, otherwise add it
+        DeliverAnim anim = deliveryObj.GetComponent<DeliverAnim>();
+        if (anim == null)
+        {
+            anim = deliveryObj.AddComponent<DeliverAnim>();
+        }
+
         anim.originalPos = startWorldPos;
         anim.districtID = dID;
+        anim.moveSpeed = speed; // Set the translation speed
+        anim.owner = callbackOwner;
+        anim.deliveryAmount = amount;
         
+        DevTools.Log($"[DeliverAnim] Starting delivery for {dID} with amount {amount} and speed {speed}");
+
         // Convert grid path to world points (centers of tiles)
         anim.pathPoints = new List<Vector3>();
         foreach (Vector2Int coord in gridPath)
@@ -59,6 +79,12 @@ public class DeliverAnim : MonoBehaviour
     {
         // 1. Move to flag
         yield return StartCoroutine(MoveAlongPath(pathPoints));
+
+        // 🔹 NEW: DELIVER RESOURCES UPON REACHING FLAG
+        if (owner != null)
+        {
+            owner.DeliverResources(deliveryAmount);
+        }
 
         // 2. Wait
         yield return new WaitForSeconds(waitTime);
@@ -78,7 +104,8 @@ public class DeliverAnim : MonoBehaviour
             yield return null;
         }
 
-        // 5. Delete
+        // 5. Notify owner and Delete
+        if (owner != null) owner.OnDeliveryComplete();
         Destroy(gameObject);
     }
 
@@ -99,7 +126,8 @@ public class DeliverAnim : MonoBehaviour
                 Vector3 dir = target - start;
                 if (dir != Vector3.zero)
                 {
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 10f);
+                    float rotSpeed = 10f * Mathf.Max(1f, moveSpeed);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * rotSpeed);
                 }
 
                 elapsed += Time.deltaTime;
