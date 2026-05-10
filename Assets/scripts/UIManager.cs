@@ -4,6 +4,8 @@ using System.Collections.Generic;
 public class UIManager : MonoBehaviour
 {
   [Header("Core Panels")]
+  public GameObject startPanel;
+  public GameObject aboutPanel;
   public GameObject homePanel;
   public GameObject categoryPanel;
   public GameObject scanPanel;
@@ -33,6 +35,11 @@ public class UIManager : MonoBehaviour
   //   Housing button  → OnCategorySelected( housingPanel )
   //   Terrain button  → OnCategorySelected( terrainPanel )
   // -------------------------------------------------------------------
+ 
+  public void OpenAbout()
+  {
+    ShowPanel(aboutPanel);
+  }
   public void OnCategorySelected(GameObject itemPanel)
   {
     if (itemPanel == null)
@@ -183,21 +190,28 @@ public class UIManager : MonoBehaviour
   // -------------------------------------------------------------------
   public void ShowPanel(GameObject panel)
   {
+    Debug.Log("BUTTON CLICK DETECTED");
+
     if (panel == null)
     {
-      DevTools.LogError("[UIManager] ShowPanel — panel is null!");
+      Debug.LogError("[UIManager] ShowPanel — panel is null!");
       return;
     }
 
-    DevTools.Log("[UIManager] Opening panel: " + panel.name);
+    Debug.Log("[UIManager] Trying to open: " + panel.name);
 
     if (currentPanel != null)
     {
+      Debug.Log("[UIManager] Hiding current panel: " + currentPanel.name);
+
       panelHistory.Push(currentPanel);
       currentPanel.SetActive(false);
     }
 
     panel.SetActive(true);
+
+    Debug.Log("[UIManager] Activated panel: " + panel.name);
+
     currentPanel = panel;
   }
 
