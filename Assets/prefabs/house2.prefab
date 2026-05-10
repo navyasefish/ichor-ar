@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8393835593134816368}
   - component: {fileID: 3907549139901521043}
   - component: {fileID: 5331927942214959685}
-  m_Layer: 6
+  m_Layer: 3
   m_Name: Full
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -117,7 +117,7 @@ GameObject:
   - component: {fileID: 7967923762042832056}
   - component: {fileID: 820329870423372081}
   - component: {fileID: 5610049948704566131}
-  m_Layer: 6
+  m_Layer: 3
   m_Name: Empty
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -284,7 +284,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 9d337e43f86faf84d978600cfa85d043, type: 3}
       propertyPath: m_Layer
-      value: 6
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -369,6 +369,7 @@ MonoBehaviour:
   generationRate: 50
   maxCapacity: 100
   deliveryAgentPrefab: {fileID: 2916078585919791198, guid: a012b48ea43f2f840a00a818a9e6b418, type: 3}
+  deliveryAgentSpeed: 0.4
   currentAmount: 0
   assignedDistrictID: global
 --- !u!114 &6949730067700620387
