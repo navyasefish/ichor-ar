@@ -29,18 +29,18 @@ public class UIManager : MonoBehaviour
     ShowPanel(startPanel);
   }
 
-  // -------------------------------------------------------------------
-  // Assign to every category button OnClick.
-  // Drag the item panel you want shown after scanning into the argument.
-  //   Housing button  → OnCategorySelected( housingPanel )
-  //   Terrain button  → OnCategorySelected( terrainPanel )
-  // -------------------------------------------------------------------
- 
-  public void OpenAbout()
-  {
-    ShowPanel(aboutPanel);
-  }
-  public void OnCategorySelected(GameObject itemPanel)
+    // -------------------------------------------------------------------
+    // Assign to every category button OnClick.
+    // Drag the item panel you want shown after scanning into the argument.
+    //   Housing button  → OnCategorySelected( housingPanel )
+    //   Terrain button  → OnCategorySelected( terrainPanel )
+    // -------------------------------------------------------------------
+
+    public void OpenAbout()
+    {
+        ShowPanel(aboutPanel);
+    }
+    public void OnCategorySelected(GameObject itemPanel)
   {
     if (itemPanel == null)
     {
@@ -238,4 +238,9 @@ public class UIManager : MonoBehaviour
     panel.SetActive(true);
     currentPanel = panel;
   }
+    public void CloseAbout()
+    {
+        ShowPanel(startPanel);
+    }
+
 }
