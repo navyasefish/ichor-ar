@@ -10,6 +10,7 @@ public class GridManager : MonoBehaviour
   [SerializeField] private float tileSize = 0.2f;
 
   public float TileSize => tileSize;
+
   private List<GameObject> spawnedTiles = new List<GameObject>();
   private Dictionary<Vector2Int, GridTile> gridTiles = new Dictionary<Vector2Int, GridTile>();
 
@@ -29,10 +30,8 @@ public class GridManager : MonoBehaviour
         );
 
         GameObject tile = Instantiate(tilePrefab, position, Quaternion.Euler(90f, 0f, 0f), transform);
-        // Get the GridTile component
         GridTile gridTile = tile.GetComponent<GridTile>();
 
-        // Assign its coordinate
         gridTile.coordinate = new Vector2Int(x, z);
 
         spawnedTiles.Add(tile);
@@ -72,12 +71,9 @@ public class GridManager : MonoBehaviour
       {
         kept++;
 
-        // Snap tile Y to sit exactly on the plane surface
         Vector3 pos = tile.transform.position;
         pos.y = plane.transform.position.y + 0.001f;
         tile.transform.position = pos;
-
-        //Debug.Log($"[GridManager] Visible tile at: {tile.transform.position}");
       }
       else
       {
@@ -95,15 +91,9 @@ public class GridManager : MonoBehaviour
       {
         Vector3 wp = spawnedTiles[0].transform.position;
         Vector3 lp = plane.transform.InverseTransformPoint(wp);
-        /*Debug.LogWarning($"[GridManager] First tile world pos: {wp}");
-        Debug.LogWarning($"[GridManager] First tile in plane local space: {lp}");
-        Debug.LogWarning($"[GridManager] 2D point tested: ({lp.x:F3}, {lp.z:F3})");
-        Debug.LogWarning($"[GridManager] Plane center: {plane.transform.position}");
-        Debug.LogWarning($"[GridManager] Board center: {transform.position}");*/
 
         float offsetX = Mathf.Abs(transform.position.x - plane.transform.position.x);
         float offsetZ = Mathf.Abs(transform.position.z - plane.transform.position.z);
-        //Debug.LogWarning($"[GridManager] Board-to-plane offset: X={offsetX:F3} Z={offsetZ:F3}");
       }
     }
   }
@@ -151,6 +141,7 @@ public class GridManager : MonoBehaviour
 
     return inside;
   }
+
   public GridTile GetTile(Vector2Int coordinate)
   {
     if (gridTiles.TryGetValue(coordinate, out GridTile tile))

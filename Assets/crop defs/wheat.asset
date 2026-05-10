@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66d9e8cee4f16ee4c8de3794c08ba97f, type: 3}
+  m_Name: wheat
+  m_EditorClassIdentifier: 
+  cropName: Wheat
+  cropIcon: {fileID: 0}
+  seedCost: 1
+  harvestYield: 3
+  stagePrefabs:
+  - {fileID: 246138062469685813, guid: 9ee54d940fced754ea2b8e4767387ecd, type: 3}
+  - {fileID: 7517447860949442293, guid: 4b6ad725c4b96be4b950942c78c4d49f, type: 3}
+  - {fileID: 884713698948903153, guid: 47da2fcd771b0ed4eab7f5b10170940b, type: 3}
+  secondsPerStage:
+  - 5
+  - 5
+  - 5
