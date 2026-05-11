@@ -71,5 +71,32 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 287b6dc2631225c44bbb8da2b96d06d4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4515133592971206239}
   m_SourcePrefab: {fileID: 100100000, guid: 287b6dc2631225c44bbb8da2b96d06d4, type: 3}
+--- !u!1 &3782261027391646731 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 287b6dc2631225c44bbb8da2b96d06d4, type: 3}
+  m_PrefabInstance: {fileID: 4088181648589754714}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4515133592971206239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3782261027391646731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40ab6332ddade184889627cc13132196, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  placeableType: 1
+  shape: 1
+  tileSize: 0.2
+  costGold: 0
+  costStone: 0
+  costFood: 0
+  costIchor: 0
