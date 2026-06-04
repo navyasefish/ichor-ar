@@ -139,20 +139,6 @@ Wandering settlers discover a crumbling nameless temple in an uninhabited wilder
 
 ---
 
-## Team
-
-| Name | SAP ID | Roll No |
-|------|--------|---------|
-| Navya Nandini | 500107849 | R2142221076 |
-| Harshika Bilwal | 500108706 | R2142221146 |
-| Navinya Sawarkar | 500108379 | R2142221105 |
-| Sarthak Dhyani | 500107870 | R2142220938 |
-
-**Guide:** Mr. Priyabrata  
-School of Computer Science, University of Petroleum & Energy Studies (UPES), Dehradun
-
----
-
 ## References
 
 1. J. Li, E. D. van der Spek, L. M. G. Feijs, F. Wang, & J. Hu — "Augmented reality games for learning: A literature review"
